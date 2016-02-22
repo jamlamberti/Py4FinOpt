@@ -1,0 +1,2 @@
+class InvalidCacheOption(Exception):
+    pass
