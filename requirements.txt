@@ -1,0 +1,4 @@
+numpy
+matplotlib
+xlsxwriter
+yahoo-finance
