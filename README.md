@@ -1,2 +1,2 @@
-# py4FinOpt
-Python for Financial Optimization
+# Python for Financial Optimization (Py4FinOpt)
+
