@@ -1,8 +1,9 @@
 import functools
 import downloader
-
+import datetime
 from common import config, db_manager, memoize
 
+TIME_FMT = '%Y-%m-%d'
 
 class MemoizedTable(object):
     def __init__(self, table, use_cache=True):
@@ -68,10 +69,74 @@ class MemoizedTable(object):
 def get_data(ticker, start_date, end_date):
     return downloader.main(ticker, start_date, end_date)
 
-def main(tickers, start_date, end_date):
+def convert_to_weekly(data):
+    data = sorted(data, key=lambda row: datetime.datetime.strptime(row['Date'], TIME_FMT))
+    weeks = {}
+    for row in data:
+        d = datetime.datetime.strptime(row['Date'], TIME_FMT)
+        d_start = d-datetime.timedelta(d.weekday())
+        d_start = d_start.strftime(TIME_FMT)
+        if d_start not in weeks:
+            weeks[d_start] = row
+            weeks[d_start]['Volume'] = [row['Volume']]
+        else:
+            weeks[d_start]['Volume'].append(row['Volume'])
+            weeks[d_start]['Close'] = row['Close']
+            weeks[d_start]['Adj_Close'] = row['Adj_Close']
+            if float(weeks[d_start]['High']) < float(row['High']):
+                weeks[d_start]['High'] = row['High']
+            if float(weeks[d_start]['Low']) > float(row['Low']):
+                weeks[d_start]['Low'] = row['Low']
+    rows = []
+    for k,v in weeks.items():
+        v_vol = sum(map(int, v['Volume']))/len(v['Volume'])
+        v['Volume'] = v_vol
+        rows.append(v)
+    return rows
+
+
+def convert_to_monthly(data):
+    data = sorted(data, key=lambda row: datetime.datetime.strptime(row['Date'], TIME_FMT))
+    months = {}
+    for row in data:
+        d = datetime.datetime.strptime(row['Date'], TIME_FMT)
+        d_start = d.strftime('%Y-%m')
+        if d_start not in months:
+            months[d_start] = row
+            months[d_start]['Volume'] = [row['Volume']]
+        else:
+            months[d_start]['Volume'].append(row['Volume'])
+            months[d_start]['Close'] = row['Close']
+            months[d_start]['Adj_Close'] = row['Adj_Close']
+            if float(months[d_start]['High']) < float(row['High']):
+                months[d_start]['High'] = row['High']
+            if float(months[d_start]['Low']) > float(row['Low']):
+                months[d_start]['Low'] = row['Low']
+    rows = []
+    for k,v in months.items():
+        v_vol = sum(map(int, v['Volume']))/len(v['Volume'])
+        v['Volume'] = v_vol
+        rows.append(v)
+    return rows
+
+
+def convert_to_daily(data):
+    return data
+
+
+def main(tickers, start_date, end_date, freq='daily'):
     data = {}
+    freqs = {
+        'daily': convert_to_daily,
+        'weekly': convert_to_weekly,
+        'monthly': convert_to_monthly
+    }
+    if freq not in freqs:
+        print "Unknown frequency, defaulting to daily"
+        freq = daily
+
     for ticker in set(tickers):
-        data[ticker] = get_data(ticker, start_date, end_date)
+        data[ticker] = freqs[freq](get_data(ticker, start_date, end_date))
     return data
 
 if __name__ == '__main__':
