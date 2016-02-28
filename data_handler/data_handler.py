@@ -8,7 +8,6 @@ TIME_FMT = '%Y-%m-%d'
 class MemoizedTable(object):
     def __init__(self, table, use_cache=True):
         mysql_config = config.Section('mysql')
-        #self.func = func
         self.use_cache = use_cache
 
         cm = db_manager.CredentialManager(
