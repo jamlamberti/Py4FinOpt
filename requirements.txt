@@ -2,3 +2,6 @@ numpy
 matplotlib
 xlsxwriter
 yahoo-finance
+scipy
+coinor.pulp
+cvxopt
