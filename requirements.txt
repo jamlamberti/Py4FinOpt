@@ -3,5 +3,6 @@ matplotlib
 xlsxwriter
 yahoo-finance
 scipy
+pandas
 coinor.pulp
 cvxopt
