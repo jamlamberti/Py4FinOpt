@@ -1,17 +1,37 @@
-import MySQLdb
+import sqlite3
+import os
+def init_database(da):
+    da.connect()
+    da.execute("""
+    CREATE TABLE IF NOT EXISTS `dailyCacheStocks`(
+        `id` INT NOT NULL,
+        `ticker` VARCHAR(7) NOT NULL,
+        `timestamp` DATE NOT NULL,
+        `open` DOUBLE(8,2),
+        `high` DOUBLE(8,2),
+        `low` DOUBLE(8,2),
+        `close` DOUBLE(8,2),
+        `volume` INT(11) NOT NULL,
+        `adjclose` DOUBLE(8,2),
+        PRIMARY KEY(`id`),
+        CONSTRAINT uc_ticker_tstamp UNIQUE (ticker, timestamp)
+    );""")
+    da.close()
+    print(" [+] Initialized DB")
+
 
 class CredentialManager(object):
     def __init__(
             self,
-            host,
-            user,
-            passwd,
-            name,
+            host=None,
+            user=None,
+            passwd=None,
+            name='example.db',
             port=3306):
         self.db_host = host
         self.db_user = user
         self.db_pass = passwd
-        self.db_name = name
+        self.db_name = os.path.abspath(name)
         self.port = port
 
 class DatabaseAccess(object):
@@ -19,19 +39,11 @@ class DatabaseAccess(object):
         self.creds = cred_manager
         self.conn = None
         self.cursor = None
+        if not os.path.exists(self.creds.db_name):
+            init_database(self)
 
     def __connect(self):
-        try:
-            db = MySQLdb.connect(
-                    host = self.creds.db_host,
-                    port = self.creds.port,
-                    user = self.creds.db_user,
-                    passwd = self.creds.db_pass,
-                    db = self.creds.db_name)
-        except MySQLdb.Error, e:
-            if e.args[0] == 1049: # Unknown DB
-                print(" [-] Error connecting to MySQL, try creating the DB?")
-                raise e
+        db = sqlite3.connect(self.creds.db_name)
         return db
 
     def connect(self):
@@ -52,10 +64,11 @@ class DatabaseAccess(object):
                 self.conn.commit()
                 self.conn.close()
                 self.conn = None
-                print(" [+] Closed MySQLdb connection")
+                print(" [+] Closed SQLite connection")
 
-        except MySQLdb.OperationalError, e:
+        except Exception, e:
             print(" [-] DB connection already closed... maybe timeout?")
+            print(e)
 
     def execute(self, sql, *args):
         try:
@@ -66,15 +79,21 @@ class DatabaseAccess(object):
             self.cursor.execute(sql, args)
             self.conn.commit()
 
-        except MySQLdb.OperationalError, e:
+        except sqlite3.OperationalError, e:
             print("database connection went away, reconnecting...")
+            print(e)
             self.connect()
             print("Trying query again...")
             self.cursor.execute(sql,args)
             self.conn.commit()
 
-        except MySQLdb.Error, ex:
+        except sqlite3.OperationalError, e:
             self.conn.rollback()
+            raise
+
+        except:
+            print(sql)
+            print(args)
             raise
 
         r = self.cursor.fetchone()
@@ -95,35 +114,37 @@ class DatabaseAccess(object):
                 self.connect()
             self.cursor.execute(sql, args)
             self.conn.commit()
-        except MySQLdb.OperationalError, e:
+        except sqlite3.OperationalError, e:
             print("database connection went away, reconnecting...")
+            print(e)
             self.connect()
             print("Trying query again...")
             self.cursor.execute(sql, args)
             self.conn.commit()
-        except MySQLdb.OperationalError, e:
+        except sqlite3.OperationalError, e:
             self.conn.rollback()
             raise
+
         except:
             print(sql)
             print(args)
             raise
+        
         r = self.cursor.fetchall()
         self.lr_id = self.cursor.lastrowid
         self.conn.commit()
         return r
 
 def test_connect():
-    from common import config
-    mysql_config = config.Section('mysql')
     cm = CredentialManager(
-        host = mysql_config.get('db_host'),
-        user = mysql_config.get('username'),
-        passwd = mysql_config.get('passwd'),
-        name = mysql_config.get('db_name'),
+        host = None,
+        user = None,
+        passwd = None,
+        name = 'test.db',
     )
     da = DatabaseAccess(cm)
     da.connect()
+    print da.execute_all("SELECT * from sqlite_master where type='table'")
     da.close()
 
 if __name__ == '__main__':

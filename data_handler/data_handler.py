@@ -2,28 +2,35 @@ import functools
 import downloader
 import datetime
 from common import config, memoize
-use_db = True
-try:
-    from common import db_manager
-except:
-    use_db = False
+cache_config = config.Section('cache')
+db_config = None
+if cache_config.get('cache-impl') == 'mysql':
+    try:
+        from common import db_manager as db_mgr
+        db_config = config.Section('mysql')
+
+    except:
+        from common import sqlite_manager as db_mgr
+        db_config = config.Section('sqlite')
+else:
+    from common import sqlite_manager as db_mgr
+    db_config = config.Section('sqlite')
 
 TIME_FMT = '%Y-%m-%d'
 
 class MemoizedTable(object):
     def __init__(self, table, use_cache=True):
-        mysql_config = config.Section('mysql')
-        self.use_cache = use_cache and use_db
-        if self.use_cache:
-            cm = db_manager.CredentialManager(
-                host = mysql_config.get('db_host'),
-                user = mysql_config.get('username'),
-                passwd = mysql_config.get('passwd'),
-                name = mysql_config.get('db_name'),
-            )
-            self.db = db_manager.DatabaseAccess(cm)
-            self.db.connect()
-            self.table = table
+        self.use_cache = use_cache
+        cm = db_mgr.CredentialManager(
+            host = db_config.get('db_host'),
+            user = db_config.get('username'),
+            passwd = db_config.get('passwd'),
+            name = db_config.get('db_name'),
+        )
+        self.db = db_mgr.DatabaseAccess(cm)
+        self.db.connect()
+        self.table = table
+            
 
     def __call__(self, func, *args, **kargs):
         def new_func(*args, **kargs):
