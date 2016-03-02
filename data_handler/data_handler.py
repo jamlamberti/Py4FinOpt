@@ -55,7 +55,11 @@ class MemoizedTable(object):
             data = []
             for row in res:
                 temp = {}
-                temp['Date']  = row[1].strftime('%Y-%m-%d')
+                try:
+                    temp['Date']  = row[1].strftime('%Y-%m-%d')
+                except:
+                    # SQLite doesn't return datetimes as a datetime object but rather a string
+                    temp['Date'] = row[1]
                 temp['Open']  = row[2]
                 temp['High']  = row[3]
                 temp['Low']   = row[4]
@@ -64,9 +68,11 @@ class MemoizedTable(object):
                 temp['Adj_Close'] = row[7]
                 data.append(temp)
             if len(data) == 0:
+                print "here"
                 raise memoize.CacheMiss()
             return data
-        except:
+        except Exception, e:
+            print(e)
             raise memoize.CacheMiss()
 
     def __write_cache(self, res, args):
