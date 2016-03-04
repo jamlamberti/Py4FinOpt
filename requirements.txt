@@ -5,4 +5,5 @@ yahoo-finance
 scipy
 pandas
 coinor.pulp
+networkx
 cvxopt
