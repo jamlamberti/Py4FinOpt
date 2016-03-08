@@ -1,6 +1,68 @@
 import numpy as np
 from cvxopt import solvers, matrix
 
+solvers.options["show_progress"] = False
+
+def mvo_no_shorts(returns, m):
+    returns = np.asmatrix(returns)
+    K = returns.shape[0]
+
+    # Compute the means of the returns
+    mu = np.mean(returns, axis=1)
+
+    P = 2*np.cov(returns)
+    q = [0.0 for _ in range(K)]
+
+    ret_cond = np.zeros((1, K)) + np.transpose(-1.0*mu)
+    G = np.concatenate((ret_cond, -np.eye(K)), axis=0)
+    print G 
+    h = [float(-m)] + [0.0 for _ in range(K)]
+
+    A = np.ones((1, K))
+    b = [1.0]
+    
+    sol = solvers.qp(
+        matrix(P),
+        matrix(q),
+        matrix(G),
+        matrix(h),
+        matrix(A),
+        matrix(b)
+    )
+
+    return sol['x']
+
+
+def mvo_shorts(returns, m):
+    # K is the number of stocks
+    returns = np.asmatrix(returns)
+    K = returns.shape[0]
+
+    # Compute the means of the returns
+    mu = np.mean(returns, axis=1)
+
+    P = 2*np.cov(returns)
+    q = [0.0 for _ in range(K)]
+
+    G = np.transpose(-1.0*mu)
+
+    h = [float(-m)]
+    A = np.ones((1, K))
+    b = [1.0]
+    sol = solvers.qp(
+        matrix(P),
+        matrix(q),
+        matrix(G),
+        matrix(h),
+        matrix(A),
+        matrix(b)
+    )
+    
+    return sol['x']
+
+
+
+
 def mvo(returns, m=100):
     # K is the number of stocks
     returns = np.asmatrix(returns)
@@ -18,7 +80,7 @@ def mvo(returns, m=100):
     
     # Solve the QP, model isn't exactly right...
     sol = solvers.qp(
-        matrix(m*Q),
+        matrix(Q),
         matrix(-1.0*mu),
         matrix(G),
         matrix(h),
@@ -55,6 +117,6 @@ if __name__ == '__main__':
     r = []
     for k in sorted(rets.keys()):
         r.append(rets[k])
-    x = np.transpose(mvo(r))[0]
+    x = np.transpose(mvo_no_shorts(r, 1.105))[0]
     print sorted(rets.keys())
     print x
