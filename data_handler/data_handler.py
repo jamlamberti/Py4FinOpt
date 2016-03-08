@@ -68,7 +68,6 @@ class MemoizedTable(object):
                 temp['Adj_Close'] = row[7]
                 data.append(temp)
             if len(data) == 0:
-                print "here"
                 raise memoize.CacheMiss()
             return data
         except Exception, e:
