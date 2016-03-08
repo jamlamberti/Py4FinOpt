@@ -4,7 +4,7 @@ def init_database(da):
     da.connect()
     da.execute("""
     CREATE TABLE IF NOT EXISTS `dailyCacheStocks`(
-        `id` INT NOT NULL,
+        `ROWID` INT NOT NULL,
         `ticker` VARCHAR(7) NOT NULL,
         `timestamp` DATE NOT NULL,
         `open` DOUBLE(8,2),
@@ -13,7 +13,7 @@ def init_database(da):
         `close` DOUBLE(8,2),
         `volume` INT(11) NOT NULL,
         `adjclose` DOUBLE(8,2),
-        PRIMARY KEY(`id`),
+        PRIMARY KEY(`ROWID`),
         CONSTRAINT uc_ticker_tstamp UNIQUE (ticker, timestamp)
     );""")
     da.close()
