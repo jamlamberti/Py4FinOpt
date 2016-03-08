@@ -1,5 +1,6 @@
 import numpy as np
 from cvxopt import solvers, matrix
+import scipy.stats
 
 solvers.options["show_progress"] = False
 
@@ -9,26 +10,27 @@ def mvo_no_shorts(returns, m):
 
     # Compute the means of the returns
     mu = np.mean(returns, axis=1)
-
     P = 2*np.cov(returns)
     q = [0.0 for _ in range(K)]
 
     ret_cond = np.zeros((1, K)) + np.transpose(-1.0*mu)
     G = np.concatenate((ret_cond, -np.eye(K)), axis=0)
-    print G 
     h = [float(-m)] + [0.0 for _ in range(K)]
 
     A = np.ones((1, K))
     b = [1.0]
-    
-    sol = solvers.qp(
-        matrix(P),
-        matrix(q),
-        matrix(G),
-        matrix(h),
-        matrix(A),
-        matrix(b)
-    )
+    try: 
+        sol = solvers.qp(
+            matrix(P),
+            matrix(q),
+            matrix(G),
+            matrix(h),
+            matrix(A),
+            matrix(b)
+        )
+    except:
+        print m
+        raise
 
     return sol['x']
 
@@ -46,7 +48,7 @@ def mvo_shorts(returns, m):
 
     G = np.transpose(-1.0*mu)
 
-    h = [float(-m)]
+    h = [float(-m+K)]
     A = np.ones((1, K))
     b = [1.0]
     sol = solvers.qp(
@@ -120,3 +122,7 @@ if __name__ == '__main__':
     x = np.transpose(mvo_no_shorts(r, 1.105))[0]
     print sorted(rets.keys())
     print x
+    steps = np.linspace(1.0, 12., num=100)
+    xs = map(lambda x: np.transpose(mvo_no_shorts(r, x))[0], steps)
+    for i, row in enumerate(xs):
+        print steps[i], map(lambda x: "%0.3f"%x, row)
