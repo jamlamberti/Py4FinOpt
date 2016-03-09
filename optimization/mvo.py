@@ -89,8 +89,11 @@ if __name__ == '__main__':
     r = []
     for k in sorted(rets.keys()):
         r.append([1.0+i/100 for i in rets[k]])
+
     means = np.mean(r, axis=1)
     steps = np.linspace(min(means), max(means), num=100)
     xs = map(lambda x: np.transpose(mvo_shorts(r, x))[0], steps)
+    
     for i, row in enumerate(xs):
         print steps[i], map(lambda x: "%0.3f"%x, row), np.dot(means, row)
+
