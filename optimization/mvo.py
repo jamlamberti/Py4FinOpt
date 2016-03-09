@@ -39,7 +39,7 @@ def mvo_shorts(returns, m):
     # Compute the means of the returns
     mu = np.mean(returns, axis=1)
 
-    P = 2*np.cov(returns)
+    P = np.cov(returns)
     q = [0.0 for _ in range(K)]
 
     G = np.transpose(-1.0*mu)
@@ -48,7 +48,7 @@ def mvo_shorts(returns, m):
     A = np.ones((1, K))
     b = [1.0]
     sol = solvers.qp(
-        matrix(P),
+        matrix(2*P),
         matrix(q),
         matrix(G),
         matrix(h),
