@@ -48,7 +48,7 @@ def mvo_shorts(returns, m):
 
     G = np.transpose(-1.0*mu)
 
-    h = [float(-m+K)]
+    h = [float(-m)]
     A = np.ones((1, K))
     b = [1.0]
     sol = solvers.qp(
@@ -118,11 +118,12 @@ if __name__ == '__main__':
 
     r = []
     for k in sorted(rets.keys()):
-        r.append(rets[k])
+        r.append([1.0+i/100 for i in rets[k]])
     x = np.transpose(mvo_no_shorts(r, 1.105))[0]
     print sorted(rets.keys())
     print x
-    steps = np.linspace(1.0, 12., num=100)
+    #steps = np.linspace(1.0, 1.105, num=100)
+    steps = [1.065, 1.070, 1.075, 1.080, 1.085, 1.090, 1.095, 1.100, 1.105]
     xs = map(lambda x: np.transpose(mvo_no_shorts(r, x))[0], steps)
     for i, row in enumerate(xs):
         print steps[i], map(lambda x: "%0.3f"%x, row)
