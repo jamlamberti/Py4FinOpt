@@ -10,7 +10,7 @@ def mvo_no_shorts(returns, m):
 
     # Compute the means of the returns
     mu = np.mean(returns, axis=1)
-    P = 2*np.cov(returns)
+    P = np.cov(returns)
     q = [0.0 for _ in range(K)]
 
     ret_cond = np.zeros((1, K)) + np.transpose(-1.0*mu)
@@ -19,18 +19,14 @@ def mvo_no_shorts(returns, m):
 
     A = np.ones((1, K))
     b = [1.0]
-    try: 
-        sol = solvers.qp(
-            matrix(P),
-            matrix(q),
-            matrix(G),
-            matrix(h),
-            matrix(A),
-            matrix(b)
-        )
-    except:
-        print m
-        raise
+    sol = solvers.qp(
+        matrix(2*P),
+        matrix(q),
+        matrix(G),
+        matrix(h),
+        matrix(A),
+        matrix(b)
+    )
 
     return sol['x']
 
@@ -62,36 +58,10 @@ def mvo_shorts(returns, m):
     
     return sol['x']
 
-
-
-
-def mvo(returns, m=100):
-    # K is the number of stocks
-    returns = np.asmatrix(returns)
-    K = returns.shape[0]
-
-    # Compute the means of the returns
-    mu = np.mean(returns, axis=1)
-
-    Q = np.cov(returns)
-
-    G = -1.0*np.eye(K)
-    h = np.zeros((K, 1))
-    A = np.ones((1, K))
-    b = [1.0]
-    
-    # Solve the QP, model isn't exactly right...
-    sol = solvers.qp(
-        matrix(Q),
-        matrix(-1.0*mu),
-        matrix(G),
-        matrix(h),
-        matrix(A),
-        matrix(b)
-    )
-
-    # Get the values of decision variable x
-    return sol['x']
+def mvo(returns, m, short_sales=False):
+    if short_sales:
+        return mvo_shorts(returns, m)
+    return mvo_no_shorts(returns, m)
 
 if __name__ == '__main__':
     rets = {
@@ -119,11 +89,8 @@ if __name__ == '__main__':
     r = []
     for k in sorted(rets.keys()):
         r.append([1.0+i/100 for i in rets[k]])
-    x = np.transpose(mvo_no_shorts(r, 1.105))[0]
-    print sorted(rets.keys())
-    print x
-    #steps = np.linspace(1.0, 1.105, num=100)
-    steps = [1.065, 1.070, 1.075, 1.080, 1.085, 1.090, 1.095, 1.100, 1.105]
-    xs = map(lambda x: np.transpose(mvo_no_shorts(r, x))[0], steps)
+    means = np.mean(r, axis=1)
+    steps = np.linspace(min(means), max(means), num=100)
+    xs = map(lambda x: np.transpose(mvo_shorts(r, x))[0], steps)
     for i, row in enumerate(xs):
-        print steps[i], map(lambda x: "%0.3f"%x, row)
+        print steps[i], map(lambda x: "%0.3f"%x, row), np.dot(means, row)
