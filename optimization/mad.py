@@ -4,7 +4,7 @@ import numpy as np
 
 solvers.options["show_progress"] = False
 
-def mad(returns, m):
+def mad(returns, m, short_sales=False):
     returns = np.asmatrix(returns)
     means = np.mean(returns, axis=1)
     N, T = returns.shape
@@ -23,6 +23,10 @@ def mad(returns, m):
 
     bMAD = np.zeros((2*T+1, 1))
     bMAD[2*T, 0] = -m
+
+    if not short_sales:
+        AMAD = np.concatenate((AMAD, np.concatenate((np.zeros((N, T)), -np.eye(N)), axis=1)), axis=0)
+        bMAD = np.concatenate((bMAD, np.zeros((N, 1))), axis=0)
     
     AeqMAD = np.zeros((1, T+N))
     AeqMAD[0, :] = [0.0 for _ in range(T)] + [1.0 for _ in range(N)]
