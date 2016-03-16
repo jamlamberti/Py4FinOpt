@@ -10,14 +10,18 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
     means = np.mean(returns, axis=1)
 
     def f(x_mat=None, z=None):
-        print x_mat, z
         if x_mat is None:
             x0 = (1./N)*np.ones((N, 1))
             return 0, matrix(x0)
         else:
             x = np.asmatrix(x_mat)
             sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
-            return sharpe
+            if z is None:
+                # Return val, d(f)/dx
+                return sharpe, matrix(np.zeros((1, N)))
+            else:
+                # Return val, d(f)/dx, and hessian
+                return sharpe, matrix(np.zeros((1, N))), matrix(np.eye(N))
 
 
     G = np.zeros((1, N))
@@ -26,7 +30,7 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
     A = np.ones((1, N))
     b = [1.0]
 
-    solvers.cp(
+    sol = solvers.cp(
         f,
         G=matrix(G),
         h=matrix(h),
@@ -34,7 +38,7 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
         b=matrix(b)
     )
 
-    return solvers['x']
+    return sol['x']
 
 if __name__ == '__main__':
     rets = {
