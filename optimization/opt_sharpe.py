@@ -1,20 +1,21 @@
 import numpy as np
 from cvxopt import solvers, matrix
 
-solvers.options["show_progress"] = False
+#solvers.options["show_progress"] = False
 
 def opt_sharpe(returns, r_f=1, short_sales=False):
     returns = np.asmatrix(returns)
     N, T = returns.shape
     Q = np.cov(returns)
     means = np.mean(returns, axis=1)
-
+    last_x = (1./N)*np.ones((N, 1))
     def f(x_mat=None, z=None):
         if x_mat is None:
             x0 = (1./N)*np.ones((N, 1))
             return 0, matrix(x0)
         else:
             x = np.asmatrix(x_mat)
+            last_x = x
             sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
             # Needs more...
             dF = np.transpose(means*(1.0/np.sqrt(np.transpose(x)*Q*x))) + \
@@ -35,16 +36,20 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
 
     A = np.ones((1, N))
     b = [1.0]
+    solvers.options['maxiters'] = 500
+    try:
+        sol = solvers.cp(
+            f,
+            G=matrix(G),
+            h=matrix(h),
+            A=matrix(A),
+            b=matrix(b),
+        )
+        print sol['status']
+        return sol['x']
+    except ZeroDivisionError, e:
+        return last_x
 
-    sol = solvers.cp(
-        f,
-        G=matrix(G),
-        h=matrix(h),
-        A=matrix(A),
-        b=matrix(b)
-    )
-    #print sol['status']
-    return sol['x']
 
 if __name__ == '__main__':
     rets = {
@@ -73,7 +78,6 @@ if __name__ == '__main__':
         r.append([1.0+i/100 for i in rets[k]])
     means = np.mean(r, axis=1)
     steps = np.linspace(0.0, 1.0, num=50)
-
     xs = map(lambda x: np.transpose(opt_sharpe(r, x))[0], steps)
     for i, row in enumerate(xs):
         print "Rf:", steps[i], map(lambda x: "%0.3f"%x, row)
