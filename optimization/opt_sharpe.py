@@ -16,12 +16,18 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
         else:
             x = np.asmatrix(x_mat)
             sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
+            # Needs more...
+            dF = np.transpose(means*(1.0/np.sqrt(np.transpose(x)*Q*x))) + \
+                (r_f-np.transpose(means)*x)*(-1/(2*float(np.transpose(x)*Q*x)**(2.0/3)))*np.transpose(x)*(Q + np.transpose(Q))
             if z is None:
                 # Return val, d(f)/dx
-                return sharpe, matrix(np.zeros((1, N)))
+                return sharpe, matrix(dF)
             else:
                 # Return val, d(f)/dx, and hessian
-                return sharpe, matrix(np.zeros((1, N))), matrix(np.eye(N))
+                H = means*(-1/(float(x.T*Q*x)**(2/3)))*x.T*(Q.T + Q) + \
+                    (r_f - means.T*x)*(-1/(2*float(x.T*Q*x)**(2/3)))+(Q.T + Q).T + \
+                    (Q.T + Q).T*(1/(4*float(x.T*Q*x)**(4/3)))
+                return sharpe, matrix(dF), matrix(H)
 
 
     G = np.zeros((1, N))
@@ -37,7 +43,7 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
         A=matrix(A),
         b=matrix(b)
     )
-
+    #print sol['status']
     return sol['x']
 
 if __name__ == '__main__':
@@ -66,9 +72,9 @@ if __name__ == '__main__':
     for k in sorted(rets.keys()):
         r.append([1.0+i/100 for i in rets[k]])
     means = np.mean(r, axis=1)
-    steps = np.linspace(min(means), max(means), num=100)
+    steps = np.linspace(0.0, 1.0, num=50)
 
     xs = map(lambda x: np.transpose(opt_sharpe(r, x))[0], steps)
     for i, row in enumerate(xs):
-        print steps[i], map(lambda x: "%0.3f"%x, row), np.dot(means, row)
+        print "Rf:", steps[i], map(lambda x: "%0.3f"%x, row)
 
