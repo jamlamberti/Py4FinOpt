@@ -17,7 +17,8 @@ def downside_variance(returns, m, short_sales=False):
 
     N, T = returns.shape
     
-    P = (2.0/T)*np.concatenate((np.zeros((N, N+T)), np.concatenate((np.zeros((T, N)), np.eye(T)), axis=1)),axis=0)
+    P = (2.0/T)*np.concatenate((np.zeros((N, N+T)),
+        np.concatenate((np.zeros((T, N)), np.eye(T)), axis=1)),axis=0)
 
     q = np.zeros((N+T, 1))
     
