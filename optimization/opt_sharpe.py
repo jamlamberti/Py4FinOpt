@@ -37,18 +37,15 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
     A = np.ones((1, N))
     b = [1.0]
     solvers.options['maxiters'] = 500
-    try:
-        sol = solvers.cp(
-            f,
-            G=matrix(G),
-            h=matrix(h),
-            A=matrix(A),
-            b=matrix(b),
-        )
-        print sol['status']
-        return sol['x']
-    except ZeroDivisionError, e:
-        return last_x
+    sol = solvers.cp(
+        f,
+        G=matrix(G),
+        h=matrix(h),
+        A=matrix(A),
+        b=matrix(b),
+    )
+    print sol['status']
+    return sol['x']
 
 
 if __name__ == '__main__':
