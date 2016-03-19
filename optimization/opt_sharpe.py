@@ -1,7 +1,7 @@
 import numpy as np
 from cvxopt import solvers, matrix
 
-#solvers.options["show_progress"] = False
+solvers.options["show_progress"] = False
 
 def opt_sharpe(returns, r_f=1, short_sales=False):
     returns = np.asmatrix(returns)
