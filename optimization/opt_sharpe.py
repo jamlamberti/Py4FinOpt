@@ -2,6 +2,7 @@ import numpy as np
 from cvxopt import solvers, matrix
 
 solvers.options["show_progress"] = False
+solvers.options['maxiters'] = 500
 
 def opt_sharpe(returns, r_f=1, short_sales=False):
     returns = np.asmatrix(returns)
@@ -36,7 +37,7 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
 
     A = np.ones((1, N))
     b = [1.0]
-    solvers.options['maxiters'] = 500
+    
     sol = solvers.cp(
         f,
         G=matrix(G),
@@ -44,7 +45,7 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
         A=matrix(A),
         b=matrix(b),
     )
-    print sol['status']
+    print r_f, sol['status']
     return sol['x']
 
 
