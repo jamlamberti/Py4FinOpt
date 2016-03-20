@@ -1,7 +1,7 @@
 # I think having the variable names match up with what
 # cvxopt uses in their docs is nicer
 # pylint: disable=invalid-name
-"""Mean Variance Optimization Model"""
+"""Downside Variance Model"""
 import numpy as np
 from cvxopt import solvers, matrix
 
@@ -10,12 +10,16 @@ solvers.options["show_progress"] = False
 def optimize_downside_variance(returns, target_return, short_sales=False):
     """
     Solves the downside variance model:
-        min (1/T)sum(y_t^2)
-        s.t. mu*x >= target_return
+        min (1/T)*sum(y_t^2)
+        s.t. mu'*x >= target_return
              e'x = 1
              y_t >= 0
-             y_t >= (mu-ret_t)*x
-             {x >= 0} - Shorting constraint
+             y_t >= (mu-r_t)*x
+             {x >= 0} - Short selling constraint
+    where:
+        x is the optimal allocation
+        mu is the vector of expected returns of the stocks
+        r_t is the return at time t
 
     cvx solves:
         min (1/2)x'Px + q'x
@@ -28,6 +32,7 @@ def optimize_downside_variance(returns, target_return, short_sales=False):
 
     num_stocks, num_samples = returns.shape
 
+    # Note: we are accounting for the 1/2 here
     P = (2.0/num_samples)*np.concatenate((
         np.zeros((num_stocks, num_stocks + num_samples)),
         np.concatenate((
@@ -42,10 +47,11 @@ def optimize_downside_variance(returns, target_return, short_sales=False):
     b = [1.0]
 
     h = np.zeros((2*num_samples + 1, 1))
-    h[0, 0] = -target_return
+    h[0, 0] = -float(target_return)
 
+    # Constraint on target returns mu'*x > m
     G_return_cstr = np.zeros((1, num_stocks + num_samples))
-    G_return_cstr[0, 0:num_stocks] = -np.transpose(means)
+    G_return_cstr[0, 0:num_stocks] = -means.T
 
     G = np.concatenate((
         G_return_cstr,
@@ -58,6 +64,7 @@ def optimize_downside_variance(returns, target_return, short_sales=False):
         ), axis=0)
 
     if not short_sales:
+        # Add in the no shorting constraint (x >= 0)
         h = np.concatenate((h, np.zeros((num_stocks, 1))), axis=0)
         G = np.concatenate((
             G,
