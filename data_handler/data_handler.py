@@ -8,7 +8,7 @@ It uses the config file to decided which cache implementation
 from __future__ import print_function
 import datetime
 
-from common import config, memoize
+from common import config, errors
 from data_handler import downloader
 
 CACHE_CONFIG = config.Section('cache')
@@ -59,7 +59,7 @@ class MemoizedTable(object):
                 try:
                     res = self.__check_cache(args)
                     print("Found in cache!!!")
-                except memoize.CacheMiss:
+                except errors.CacheMiss:
                     print("Cache Miss..." \
                         " be patient as we populate the database")
                     res = func(*args)
@@ -99,11 +99,11 @@ class MemoizedTable(object):
                 temp['Adj_Close'] = row[7]
                 data.append(temp)
             if len(data) == 0:
-                raise memoize.CacheMiss()
+                raise errors.CacheMiss()
             return data
         except Exception, err:
             print(err)
-            raise memoize.CacheMiss()
+            raise errors.CacheMiss()
 
     def __write_cache(self, res, args):
         """
