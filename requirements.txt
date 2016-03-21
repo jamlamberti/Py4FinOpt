@@ -7,3 +7,4 @@ pandas
 coinor.pulp
 networkx
 cvxopt
+pytest
