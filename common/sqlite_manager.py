@@ -1,8 +1,11 @@
+"""SQLite Database Wrapper"""
+from __future__ import print_function
 import sqlite3
 import os
-def init_database(da):
-    da.connect()
-    da.execute("""
+def init_database(db_access):
+    """Create all the tables"""
+    db_access.connect()
+    db_access.execute("""
     CREATE TABLE IF NOT EXISTS `dailyCacheStocks`(
         `ROWID` integer primary key autoincrement,
         `ticker` VARCHAR(7) NOT NULL,
@@ -15,11 +18,13 @@ def init_database(da):
         `adjclose` DOUBLE(8,2),
         CONSTRAINT uc_ticker_tstamp UNIQUE (ticker, timestamp)
     );""")
-    da.close()
+    db_access.close()
     print(" [+] Initialized DB")
 
-
+# TODO: Split me out into another file and convert to NamedTuple
 class CredentialManager(object):
+    """Creds for sqlite (e.g. filename)"""
+    # pylint: disable=too-many-arguments, too-few-public-methods
     def __init__(
             self,
             host=None,
@@ -34,18 +39,25 @@ class CredentialManager(object):
         self.port = port
 
 class DatabaseAccess(object):
+    """Database Access Wrapper for SQLite3"""
     def __init__(self, cred_manager):
         self.creds = cred_manager
         self.conn = None
         self.cursor = None
+        self.lr_id = None
         if not os.path.exists(self.creds.db_name):
             init_database(self)
 
     def __connect(self):
+        """Low level connection"""
         db = sqlite3.connect(self.creds.db_name)
         return db
 
     def connect(self):
+        """
+        Connects to db
+            will close connection and reopen if already connected
+        """
         if self.conn is not None or self.cursor is not None:
             self.close()
 
@@ -53,11 +65,12 @@ class DatabaseAccess(object):
         self.cursor = self.conn.cursor()
 
     def close(self):
+        """Close the db connection if it is open"""
         try:
             if self.cursor is not None:
                 self.cursor.close()
                 self.cursor = None
-            
+
             if self.conn is not None:
                 # Make sure all the changes go through
                 self.conn.commit()
@@ -65,11 +78,15 @@ class DatabaseAccess(object):
                 self.conn = None
                 print(" [+] Closed SQLite connection")
 
-        except Exception, e:
+        except sqlite3.OperationalError, err:
             print(" [-] DB connection already closed... maybe timeout?")
-            print(e)
+            print(err)
 
     def execute(self, sql, *args):
+        """
+        Execute a SQL statement and fetch a single row
+            use get_next_result to fetch subsequent rows
+        """
         try:
             if self.cursor is None:
                 self.close()
@@ -78,74 +95,66 @@ class DatabaseAccess(object):
             self.cursor.execute(sql, args)
             self.conn.commit()
 
-        except sqlite3.OperationalError, e:
+        except sqlite3.OperationalError, err:
             print("database connection went away, reconnecting...")
-            print(e)
+            print(err)
             self.connect()
             print("Trying query again...")
-            self.cursor.execute(sql,args)
+            self.cursor.execute(sql, args)
             self.conn.commit()
 
-        except sqlite3.OperationalError, e:
+        except sqlite3.Error:
             self.conn.rollback()
             raise
 
-        except:
-            print(sql)
-            print(args)
-            raise
-
-        r = self.cursor.fetchone()
+        row = self.cursor.fetchone()
         self.lr_id = self.cursor.lastrowid
         self.conn.commit()
-        return r
+        return row
 
     def get_next_result(self):
-        r = self.cursor.fetchone()
+        """Fetch the next row from a prior query"""
+        row = self.cursor.fetchone()
         self.lr_id = self.cursor.lastrowid
         self.conn.commit()
-        return r
+        return row
 
     def execute_all(self, sql, *args):
+        """Execute a SQL statement and fetch all of the rows"""
         try:
             if self.cursor is None:
                 self.close()
                 self.connect()
             self.cursor.execute(sql, args)
             self.conn.commit()
-        except sqlite3.OperationalError, e:
+        except sqlite3.OperationalError, err:
             print("database connection went away, reconnecting...")
-            print(e)
+            print(err)
             self.connect()
             print("Trying query again...")
             self.cursor.execute(sql, args)
             self.conn.commit()
-        except sqlite3.OperationalError, e:
+        except sqlite3.Error:
             self.conn.rollback()
             raise
 
-        except:
-            print(sql)
-            print(args)
-            raise
-        
-        r = self.cursor.fetchall()
+        rows = self.cursor.fetchall()
         self.lr_id = self.cursor.lastrowid
         self.conn.commit()
-        return r
+        return rows
 
 def test_connect():
-    cm = CredentialManager(
-        host = None,
-        user = None,
-        passwd = None,
-        name = 'test.db',
+    """A simple smoke test"""
+    cred_mgr = CredentialManager(
+        host=None,
+        user=None,
+        passwd=None,
+        name='test.db',
     )
-    da = DatabaseAccess(cm)
-    da.connect()
-    print da.execute_all("SELECT * from sqlite_master where type='table'")
-    da.close()
+    db = DatabaseAccess(cred_mgr)
+    db.connect()
+    print(db.execute_all("SELECT * from sqlite_master where type='table'"))
+    db.close()
 
 if __name__ == '__main__':
     test_connect()
-
