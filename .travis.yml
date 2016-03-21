@@ -1,8 +1,9 @@
 language: python
 python:
     - "2.7"
+cache: apt
 before_install:
-    - sudo apt-get-qq  update -y
+    - sudo apt-get -qq  update -y
     - sudo apt-get install -y liblapack-dev gfortran
 # command to install deps
 install: pip install -r requirements.txt
