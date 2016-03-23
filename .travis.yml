@@ -9,8 +9,6 @@ before_install:
 # command to install deps
 install:
     - pip install -r requirements.txt
-    - pip install pylint
 
 script:
-    - pylint $(find -name '*.py')
     - py.test
