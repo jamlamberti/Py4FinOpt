@@ -9,6 +9,9 @@ before_install:
 # command to install deps
 install:
     - pip install -r requirements.txt
+    - sudo pip install python-coveralls coverage
 
 script:
     - py.test
+after_success:
+    - coveralls
