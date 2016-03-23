@@ -40,6 +40,7 @@ def smoke_test(optimizers):
 
     gross_returns = []
     # iterkeys isn't a Py3 function
+    # pylint: disable=bad-option-value
     # pylint: disable=consider-iterating-dictionary
     for k in sorted(rets.keys()):
         gross_returns.append([1.0+i/100 for i in rets[k]])
