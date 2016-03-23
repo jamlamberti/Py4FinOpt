@@ -29,6 +29,8 @@ class DependencyResolver(object):
     def visualize(self):
         """Visualize the graph"""
         graph = nx.DiGraph()
+        # iterkeys isn't a Py3 function
+        # pylint: disable=consider-iterating-dictionary
         for task in self.dependencies.keys():
             for dep in self.dependencies[task]:
                 graph.add_edges_from([(dep, task)])

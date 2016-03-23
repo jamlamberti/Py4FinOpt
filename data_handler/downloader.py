@@ -8,7 +8,7 @@ TIME_FMT = '%Y-%m-%d'
 def check_date_format(date):
     """Check if a date is valid using the TIME_FMT string"""
     try:
-        _ = datetime.datetime.strptime(date, TIME_FMT)
+        datetime.datetime.strptime(date, TIME_FMT)
     except ValueError:
         return False
     else:
