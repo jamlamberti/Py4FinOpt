@@ -29,7 +29,7 @@ class DependencyResolver(object):
     def visualize(self):
         """Visualize the graph"""
         graph = nx.DiGraph()
-        for task in self.dependencies.iterkeys():
+        for task in self.dependencies.keys():
             for dep in self.dependencies[task]:
                 graph.add_edges_from([(dep, task)])
         pos = nx.spring_layout(graph)
