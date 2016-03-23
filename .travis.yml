@@ -8,9 +8,9 @@ before_install:
     - sudo apt-get install -y liblapack-dev gfortran
 # command to install deps
 install:
-    pip install -r requirements.txt
-    pip install pylint
+    - pip install -r requirements.txt
+    - pip install pylint
 
 script:
-    pylint $(find -name '*.py')
-    py.test
+    - pylint $(find -name '*.py')
+    - py.test
