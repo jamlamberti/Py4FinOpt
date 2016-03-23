@@ -2,7 +2,7 @@
 import os
 import ConfigParser
 
- # pylint: disable=invalid-name
+# pylint: disable=invalid-name
 _config = ConfigParser.SafeConfigParser()
 _config.read([
     'config/py4finopt.cfg',
