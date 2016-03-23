@@ -59,8 +59,8 @@ def smoke_test(optimizers):
                     steps[i],
                     ["%0.3f"%x for x in row],
                     np.dot(means, row))
-
-if __name__ == '__main__':
+def test_models():
+    """Run over all the models"""
     smoke_test([
         mvo.optimize_mv,
         mad.optimize_mad,
