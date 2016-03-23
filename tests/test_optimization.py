@@ -53,12 +53,24 @@ def smoke_test(optimizers):
                     short_sales=shorting))[0]
                 for x in steps]
 
-
+            shorting_test = []
             for i, row in enumerate(allocations):
+                assert abs(steps[i] - np.dot(means, row)) < 1e-2
+                if not shorting:
+                    # pylint: disable=no-member
+                    assert all([x >= -np.finfo(np.float32).eps for x in row])
+                else:
+                    shorting_test.append(all(
+                        # pylint: disable=no-member
+                        [x >= -np.finfo(np.float32).eps for x in row]))
                 print(
                     steps[i],
                     ["%0.3f"%x for x in row],
                     np.dot(means, row))
+            if shorting:
+                print(shorting_test)
+                assert not all(shorting_test)
+
 def test_models():
     """Run over all the models"""
     smoke_test([
