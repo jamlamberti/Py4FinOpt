@@ -39,7 +39,7 @@ def smoke_test(optimizers):
     }
 
     gross_returns = []
-    for k in sorted(rets.keys()):
+    for k in sorted(rets.iterkeys()):
         gross_returns.append([1.0+i/100 for i in rets[k]])
 
     means = np.mean(gross_returns, axis=1)
