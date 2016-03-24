@@ -127,7 +127,7 @@ class DatabaseAccess(object):
                 self.connect()
             self.cursor.execute(sql, args)
             self.conn.commit()
-        except sqlite3.OperationalError, err:
+        except sqlite3.OperationalError as err:
             print("database connection went away, reconnecting...")
             print(err)
             self.connect()
