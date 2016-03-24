@@ -102,7 +102,7 @@ class MemoizedTable(object):
                 raise errors.CacheMiss()
             return data
 
-        except Exception, err:
+        except Exception as err:
             print(err)
             raise errors.CacheMiss()
 

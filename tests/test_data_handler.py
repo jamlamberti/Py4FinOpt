@@ -8,7 +8,7 @@ def test_downloader():
     assert len(res) == 0
 
     # Invalid start date, passing in as int
-    res = downloader.main('WMT', 2006-02-12, '2016-02-12')
+    res = downloader.main('WMT', 2006, '2016-02-12')
     assert len(res) == 0
 
     # Invalid end date, passing in too large a month
