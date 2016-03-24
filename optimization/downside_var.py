@@ -7,6 +7,7 @@ from cvxopt import solvers, matrix
 
 solvers.options["show_progress"] = False
 
+
 def optimize_downside_variance(returns, target_return, short_sales=False):
     """
     Solves the downside variance model:
@@ -33,7 +34,7 @@ def optimize_downside_variance(returns, target_return, short_sales=False):
     num_stocks, num_samples = returns.shape
 
     # Note: we are accounting for the 1/2 here
-    P = (2.0/num_samples)*np.concatenate((
+    P = (2.0 / num_samples) * np.concatenate((
         np.zeros((num_stocks, num_stocks + num_samples)),
         np.concatenate((
             np.zeros((num_samples, num_stocks)),
@@ -46,7 +47,7 @@ def optimize_downside_variance(returns, target_return, short_sales=False):
 
     b = [1.0]
 
-    h = np.zeros((2*num_samples + 1, 1))
+    h = np.zeros((2 * num_samples + 1, 1))
     h[0, 0] = -float(target_return)
 
     # Constraint on target returns mu'*x > m
@@ -57,11 +58,11 @@ def optimize_downside_variance(returns, target_return, short_sales=False):
         G_return_cstr,
         np.concatenate((
             np.zeros((num_samples, num_stocks)),
-            -1.0*np.eye(num_samples)), axis=1),
+            -1.0 * np.eye(num_samples)), axis=1),
         np.concatenate((
-            np.transpose(-1.0*returns+(means*np.ones((1, num_samples)))),
-            -1.0*np.eye(num_samples)), axis=1)
-        ), axis=0)
+            np.transpose(-1.0 * returns + (means * np.ones((1, num_samples)))),
+            -1.0 * np.eye(num_samples)), axis=1)
+    ), axis=0)
 
     if not short_sales:
         # Add in the no shorting constraint (x >= 0)
@@ -69,9 +70,9 @@ def optimize_downside_variance(returns, target_return, short_sales=False):
         G = np.concatenate((
             G,
             np.concatenate((
-                -1.0*np.eye(num_stocks),
+                -1.0 * np.eye(num_stocks),
                 np.zeros((num_stocks, num_samples))), axis=1)
-            ), axis=0)
+        ), axis=0)
 
     sol = solvers.qp(
         matrix(P),

@@ -5,6 +5,7 @@ from yahoo_finance import Share
 
 TIME_FMT = '%Y-%m-%d'
 
+
 def check_date_format(date):
     """Check if a date is valid using the TIME_FMT string"""
     try:
@@ -16,14 +17,15 @@ def check_date_format(date):
     else:
         return True
 
+
 def check_args(start_date, end_date):
     """Check all user supplied args"""
     res = False
     if not check_date_format(start_date):
-        print(' [-] Invalid start date format! Use: %s'%TIME_FMT)
+        print(' [-] Invalid start date format! Use: %s' % TIME_FMT)
         res = True
     if not check_date_format(end_date):
-        print(' [-] Invalid end date format! Use: %s'%TIME_FMT)
+        print(' [-] Invalid end date format! Use: %s' % TIME_FMT)
         res = True
     if not res:
         s_d = datetime.datetime.strptime(start_date, TIME_FMT)
@@ -33,12 +35,14 @@ def check_args(start_date, end_date):
             res = True
     return res
 
+
 def download_data(stock, s_date, e_date):
     """Downloads daily pricing data for stock,
        between s_date and e_date"""
 
     ticker = Share(stock)
     return ticker.get_historical(s_date, e_date)
+
 
 def main(ticker, start_date, end_date):
     """Wraps download data and iterates over a list

@@ -6,6 +6,8 @@ import numpy as np
 from optimization import mad, mvo, downside_var
 
 # Might want to consider breaking this function out
+
+
 def load_data(data_file='data/test_data.csv'):
     """Load the data for the test"""
     rets = defaultdict(list)
@@ -16,13 +18,14 @@ def load_data(data_file='data/test_data.csv'):
                 rets[ticker].append(float(value))
     return rets
 
+
 def smoke_test(optimizers):
     """smoke test for a list of optimizers"""
     rets = load_data()
     gross_returns = []
     # iterkeys isn't a Py3 function
     for k in sorted(rets.keys()):
-        gross_returns.append([1.0+i/100 for i in rets[k]])
+        gross_returns.append([1.0 + i / 100 for i in rets[k]])
 
     means = np.mean(gross_returns, axis=1)
     steps = np.linspace(min(means), max(means), num=100)
@@ -47,11 +50,12 @@ def smoke_test(optimizers):
                         [x >= -np.finfo(np.float32).eps for x in row]))
                 print(
                     steps[i],
-                    ["%0.3f"%x for x in row],
+                    ["%0.3f" % x for x in row],
                     np.dot(means, row))
             if shorting:
                 print(shorting_test)
                 assert not all(shorting_test)
+
 
 def test_models():
     """Run over all the models"""

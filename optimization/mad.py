@@ -8,6 +8,7 @@ from cvxopt import solvers, matrix
 
 solvers.options["show_progress"] = False
 
+
 def optimize_mad(returns, target_return, short_sales=False):
     """
     Solves:
@@ -34,7 +35,7 @@ def optimize_mad(returns, target_return, short_sales=False):
     num_stocks, num_samples = returns.shape
 
     c = np.zeros((num_samples + num_stocks, 1))
-    c[0:num_samples, 0] = 1.0/num_samples
+    c[0:num_samples, 0] = 1.0 / num_samples
     c[num_samples:, 0] = 0.0
 
     beq = [1.0]
@@ -44,20 +45,20 @@ def optimize_mad(returns, target_return, short_sales=False):
     A_return_cstr[0, :] = [0.0 for _ in range(num_samples)] + list(-means)
 
     A = np.concatenate((
-        -1.*np.concatenate((
+        -1. * np.concatenate((
             np.eye(num_samples),
-            np.transpose(-1.0*returns \
-                + (means*np.ones((1, num_samples))))), axis=1),
-        -1.*np.concatenate((
+            np.transpose(-1.0 * returns
+                         + (means * np.ones((1, num_samples))))), axis=1),
+        -1. * np.concatenate((
             np.eye(num_samples),
-            np.transpose(returns \
-                - (means*np.ones((1, num_samples))))), axis=1),
+            np.transpose(returns
+                         - (means * np.ones((1, num_samples))))), axis=1),
         A_return_cstr), axis=0)
 
-    b = np.zeros((2*num_samples+1, 1))
+    b = np.zeros((2 * num_samples + 1, 1))
     # Make sure it's a float or cvxopt
     # complains about not being a dtype
-    b[2*num_samples, 0] = -float(target_return)
+    b[2 * num_samples, 0] = -float(target_return)
 
     if not short_sales:
         # Add the x >= 0 constraint

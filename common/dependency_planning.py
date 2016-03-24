@@ -5,8 +5,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+
 class DependencyResolver(object):
+
     """Determines the optimal order to run a set of tasks"""
+
     def __init__(self):
         self.dependencies = {}
         self.sol = None
@@ -35,7 +38,7 @@ class DependencyResolver(object):
         pos = nx.spring_layout(graph)
         nx.draw_networkx_nodes(graph, pos)
         nx.draw_networkx_edges(graph, pos, arrows=True, width=2)
-        #nx.draw_networkx_edge_labels(graph, pos)
+        # nx.draw_networkx_edge_labels(graph, pos)
         nx.draw(graph, pos, node_size=3000)
         plt.savefig('out.png')
 
@@ -76,6 +79,7 @@ class DependencyResolver(object):
                     return False
             completed.append(cur)
         return True
+
 
 def test_case():
     """A simple smoke test"""

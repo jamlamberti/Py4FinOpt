@@ -1,6 +1,7 @@
 """A is-it-up test for YF"""
 import yahoo_finance as yf
 
+
 def test_yahoo_finance():
     """A simple smoke test"""
     share = yf.Share('AAPL')

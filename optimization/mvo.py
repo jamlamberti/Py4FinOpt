@@ -7,6 +7,7 @@ from cvxopt import solvers, matrix
 
 solvers.options["show_progress"] = False
 
+
 def optimize_mv(returns, target_return, short_sales=False):
     """
     Solves the MVO model:
@@ -23,7 +24,7 @@ def optimize_mv(returns, target_return, short_sales=False):
 
     q = [0.0 for _ in range(num_stocks)]
 
-    G = np.zeros((1, num_stocks)) + np.transpose(-1.0*means)
+    G = np.zeros((1, num_stocks)) + np.transpose(-1.0 * means)
     h = [float(-target_return)]
 
     if not short_sales:
@@ -34,7 +35,7 @@ def optimize_mv(returns, target_return, short_sales=False):
     b = [1.0]
 
     sol = solvers.qp(
-        matrix(2*P),
+        matrix(2 * P),
         matrix(q),
         matrix(G),
         matrix(h),

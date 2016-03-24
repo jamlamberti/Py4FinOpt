@@ -2,9 +2,12 @@
 
 from common.errors import CacheMiss
 
+
 class MemoizedDict(object):
+
     """Memoize implementation using decorators and a dictionary"""
     # pylint: disable=too-few-public-methods
+
     def __init__(self, func, use_cache=True):
         self.func = func
         self.use_cache = use_cache
@@ -35,12 +38,13 @@ class MemoizedDict(object):
         """write result to dict"""
         self.cache[args] = res
 
+
 @MemoizedDict
 def simple_test(arg):
     """Smoke test of memoized dict"""
-    return 2*arg
+    return 2 * arg
 
 if __name__ == '__main__':
     for i in range(10):
         for _ in range(2):
-            assert 2*i == simple_test(i)
+            assert 2 * i == simple_test(i)

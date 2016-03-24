@@ -2,6 +2,8 @@
 from __future__ import print_function
 import sqlite3
 import os
+
+
 def init_database(db_access):
     """Create all the tables"""
     db_access.connect()
@@ -22,9 +24,13 @@ def init_database(db_access):
     print(" [+] Initialized DB")
 
 # TODO: Split me out into another file and convert to NamedTuple
+
+
 class CredentialManager(object):
+
     """Creds for sqlite (e.g. filename)"""
     # pylint: disable=too-many-arguments, too-few-public-methods
+
     def __init__(
             self,
             host=None,
@@ -38,8 +44,11 @@ class CredentialManager(object):
         self.db_name = os.path.abspath(name)
         self.port = port
 
+
 class DatabaseAccess(object):
+
     """Database Access Wrapper for SQLite3"""
+
     def __init__(self, cred_manager):
         self.creds = cred_manager
         self.conn = None
@@ -142,6 +151,7 @@ class DatabaseAccess(object):
         self.lr_id = self.cursor.lastrowid
         self.conn.commit()
         return rows
+
 
 def test_connect():
     """A simple smoke test"""

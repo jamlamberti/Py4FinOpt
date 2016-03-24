@@ -5,9 +5,13 @@ from __future__ import print_function
 import MySQLdb
 
 # TODO: Switched to a named tuple
+
+
 class CredentialManager(object):
+
     """Creds for MySQL"""
     # pylint: disable=too-many-arguments, too-few-public-methods
+
     def __init__(
             self,
             host,
@@ -21,8 +25,11 @@ class CredentialManager(object):
         self.db_name = name
         self.port = port
 
+
 class DatabaseAccess(object):
+
     """Database access wrapper for MySQL"""
+
     def __init__(self, cred_manager):
         self.creds = cred_manager
         self.conn = None
@@ -137,6 +144,7 @@ class DatabaseAccess(object):
         self.lr_id = self.cursor.lastrowid
         self.conn.commit()
         return rows
+
 
 def test_connect():
     """A smoke test for both CredentialManager and DatabaseAccess"""

@@ -31,11 +31,15 @@ TIME_FMT = '%Y-%m-%d'
 
 # Just doing some overloading of private built-ins
 # pylint: disable=too-few-public-methods
+
+
 class MemoizedTable(object):
+
     """
     A class for wrapping a function with memoization
     - memoization leverages a database implementation
     """
+
     def __init__(self, table, use_cache=True):
         self.use_cache = use_cache
         cred_mgr = db_mgr.CredentialManager(
@@ -60,8 +64,8 @@ class MemoizedTable(object):
                     res = self.__check_cache(args)
                     print("Found in cache!!!")
                 except errors.CacheMiss:
-                    print("Cache Miss..." \
-                        " be patient as we populate the database")
+                    print("Cache Miss..."
+                          " be patient as we populate the database")
                     res = func(*args)
                     self.__write_cache(res, args)
             else:
@@ -128,6 +132,7 @@ class MemoizedTable(object):
 
             self.db_access.execute_all(sql, *sqlarg)
 
+
 @MemoizedTable(table='dailyCacheStocks')
 def get_data(ticker, start_date, end_date):
     """
@@ -135,6 +140,7 @@ def get_data(ticker, start_date, end_date):
     historical data between start_date and end_date
     """
     return downloader.main(ticker, start_date, end_date)
+
 
 def convert_to_weekly(data):
     """
@@ -146,7 +152,7 @@ def convert_to_weekly(data):
     weeks = {}
     for row in data:
         d_temp = datetime.datetime.strptime(row['Date'], TIME_FMT)
-        d_start = d_temp-datetime.timedelta(d_temp.weekday())
+        d_start = d_temp - datetime.timedelta(d_temp.weekday())
         d_start = d_start.strftime(TIME_FMT)
         if d_start not in weeks:
             weeks[d_start] = row
@@ -161,7 +167,7 @@ def convert_to_weekly(data):
                 weeks[d_start]['Low'] = row['Low']
     rows = []
     for val in weeks.values():
-        v_vol = sum([int(x) for x in val['Volume']])/len(val['Volume'])
+        v_vol = sum([int(x) for x in val['Volume']]) / len(val['Volume'])
         val['Volume'] = v_vol
         rows.append(val)
     return rows
@@ -192,7 +198,7 @@ def convert_to_monthly(data):
                 months[d_start]['Low'] = row['Low']
     rows = []
     for val in months.values():
-        v_vol = sum([int(x) for x in val['Volume']])/len(val['Volume'])
+        v_vol = sum([int(x) for x in val['Volume']]) / len(val['Volume'])
         val['Volume'] = v_vol
         rows.append(val)
     return rows

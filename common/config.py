@@ -18,8 +18,11 @@ getfloat = _config.getfloat
 getboolean = _config.getboolean
 getlist = lambda x, y: get(x, y).split(',')
 
+
 class Section(object):
+
     """Section within a config file"""
+
     def __init__(self, name):
         self.name = name
 
