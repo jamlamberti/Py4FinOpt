@@ -1,46 +1,71 @@
-import functools
-import downloader
-import datetime
-from common import config, memoize
-cache_config = config.Section('cache')
-db_config = None
-if cache_config.get('cache-impl') == 'mysql':
-    try:
-        from common import db_manager as db_mgr
-        db_config = config.Section('mysql')
+"""
+The data_handler module handles mixing data stored in a local cache
+ with the data we fetch from yahoo finance
+It uses the config file to decided which cache implementation
+ to use (e.g. MySQL, sqlite3)
+"""
 
-    except:
-        from common import sqlite_manager as db_mgr
-        db_config = config.Section('sqlite')
-else:
+from __future__ import print_function
+import datetime
+
+from common import config, errors
+from . import downloader
+
+CACHE_CONFIG = config.Section('cache')
+DB_CONFIG = None
+
+# TODO: Add a layer of abstraction for db connections
+try:
+    if CACHE_CONFIG.get('cache-impl') != 'mysql':
+        raise Exception()
+    # pylint: disable=ungrouped-imports, wrong-import-position
+    from common import db_manager as db_mgr
+    DB_CONFIG = config.Section('mysql')
+
+except Exception:
+    # pylint: disable=ungrouped-imports, wrong-import-position
     from common import sqlite_manager as db_mgr
-    db_config = config.Section('sqlite')
+    DB_CONFIG = config.Section('sqlite')
 
 TIME_FMT = '%Y-%m-%d'
 
+# Just doing some overloading of private built-ins
+# pylint: disable=too-few-public-methods
+
+
 class MemoizedTable(object):
+
+    """
+    A class for wrapping a function with memoization
+    - memoization leverages a database implementation
+    """
+
     def __init__(self, table, use_cache=True):
         self.use_cache = use_cache
-        cm = db_mgr.CredentialManager(
-            host = db_config.get('db_host'),
-            user = db_config.get('username'),
-            passwd = db_config.get('passwd'),
-            name = db_config.get('db_name'),
+        cred_mgr = db_mgr.CredentialManager(
+            host=DB_CONFIG.get('db_host'),
+            user=DB_CONFIG.get('username'),
+            passwd=DB_CONFIG.get('passwd'),
+            name=DB_CONFIG.get('db_name'),
         )
-        self.db = db_mgr.DatabaseAccess(cm)
-        self.db.connect()
+        self.db_access = db_mgr.DatabaseAccess(cred_mgr)
+        self.db_access.connect()
         self.table = table
-            
 
     def __call__(self, func, *args, **kargs):
-        def new_func(*args, **kargs):
+        def new_func(*args):
+            """
+            Checks cache for a prior call, returns it
+            if found o.w. looks up and writes back
+            """
             res = None
             if self.use_cache:
                 try:
                     res = self.__check_cache(args)
                     print("Found in cache!!!")
-                except memoize.CacheMiss, e:
-                    print("Cache Miss... be patient as we populate the database")
+                except errors.CacheMiss:
+                    print("Cache Miss..."
+                          " be patient as we populate the database")
                     res = func(*args)
                     self.__write_cache(res, args)
             else:
@@ -49,48 +74,85 @@ class MemoizedTable(object):
         return new_func
 
     def __check_cache(self, args):
+        """
+        Check the sql table for a cache hit,
+        raise cache miss execption if not in cache
+        """
         try:
-            sql = "SELECT ticker, timestamp, open, high, low, close, volume, adjclose from " + self.table + " where ticker = '%s' and timestamp >= '%s' and timestamp <= '%s'"
-            res = self.db.execute_all(sql%args)
+            sql = "SELECT ticker, timestamp, open, " \
+                "high, low, close, volume, adjclose from " \
+                + self.table \
+                + " where ticker = ? and" \
+                " timestamp >= ? and timestamp <= ?"
+            res = self.db_access.execute_all(sql, *args)
             data = []
             for row in res:
                 temp = {}
                 try:
-                    temp['Date']  = row[1].strftime('%Y-%m-%d')
-                except:
-                    # SQLite doesn't return datetimes as a datetime object but rather a string
+                    temp['Date'] = row[1].strftime(TIME_FMT)
+                except AttributeError:
+                    # SQLite doesn't return datetimes as a
+                    # datetime object but rather a string
                     temp['Date'] = row[1]
-                temp['Open']  = row[2]
-                temp['High']  = row[3]
-                temp['Low']   = row[4]
+
+                temp['Open'] = row[2]
+                temp['High'] = row[3]
+                temp['Low'] = row[4]
                 temp['Close'] = row[5]
                 temp['Volume'] = row[6]
                 temp['Adj_Close'] = row[7]
                 data.append(temp)
             if len(data) == 0:
-                raise memoize.CacheMiss()
+                raise errors.CacheMiss()
             return data
-        except Exception, e:
-            print(e)
-            raise memoize.CacheMiss()
+
+        except Exception as err:
+            print(err)
+            raise errors.CacheMiss()
 
     def __write_cache(self, res, args):
+        """
+        Write the result of the function back to the
+        cache
+        """
         ticker = args[0]
         for row in res:
-            sql = "INSERT into " + self.table + " VALUES (null, '%s', '%s', %s, %s, %s, %s, %s, %s);"
-            sqlarg = (ticker, row['Date'], row['Open'], row['High'], row['Low'], row['Close'], row['Volume'], row['Adj_Close'])
-            self.db.execute_all(sql%sqlarg)
+            sql = "INSERT into " \
+                + self.table \
+                + " VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?);"
+            sqlarg = (
+                ticker,
+                row['Date'],
+                row['Open'],
+                row['High'],
+                row['Low'],
+                row['Close'],
+                row['Volume'],
+                row['Adj_Close'])
+
+            self.db_access.execute_all(sql, *sqlarg)
+
 
 @MemoizedTable(table='dailyCacheStocks')
 def get_data(ticker, start_date, end_date):
+    """
+    A memoized function which queries a ticker for daily
+    historical data between start_date and end_date
+    """
     return downloader.main(ticker, start_date, end_date)
 
+
 def convert_to_weekly(data):
-    data = sorted(data, key=lambda row: datetime.datetime.strptime(row['Date'], TIME_FMT))
+    """
+    Utility function for converting daily data to weekly
+    """
+    data = sorted(
+        data,
+        key=lambda row: datetime.datetime.strptime(row['Date'], TIME_FMT))
     weeks = {}
     for row in data:
-        d = datetime.datetime.strptime(row['Date'], TIME_FMT)
-        d_start = d-datetime.timedelta(d.weekday())
+        d_temp = datetime.datetime.strptime(row['Date'], TIME_FMT)
+        d_start = d_temp - datetime.timedelta(d_temp.weekday())
         d_start = d_start.strftime(TIME_FMT)
         if d_start not in weeks:
             weeks[d_start] = row
@@ -104,19 +166,25 @@ def convert_to_weekly(data):
             if float(weeks[d_start]['Low']) > float(row['Low']):
                 weeks[d_start]['Low'] = row['Low']
     rows = []
-    for k,v in weeks.items():
-        v_vol = sum(map(int, v['Volume']))/len(v['Volume'])
-        v['Volume'] = v_vol
-        rows.append(v)
+    for val in weeks.values():
+        v_vol = sum([int(x) for x in val['Volume']]) / len(val['Volume'])
+        val['Volume'] = v_vol
+        rows.append(val)
     return rows
 
 
 def convert_to_monthly(data):
-    data = sorted(data, key=lambda row: datetime.datetime.strptime(row['Date'], TIME_FMT))
+    """
+    Utility function for converting daily data to monthly
+    """
+    data = sorted(
+        data,
+        key=lambda row: datetime.datetime.strptime(row['Date'], TIME_FMT))
+
     months = {}
     for row in data:
-        d = datetime.datetime.strptime(row['Date'], TIME_FMT)
-        d_start = d.strftime('%Y-%m')
+        d_temp = datetime.datetime.strptime(row['Date'], TIME_FMT)
+        d_start = d_temp.strftime('%Y-%m')
         if d_start not in months:
             months[d_start] = row
             months[d_start]['Volume'] = [row['Volume']]
@@ -129,31 +197,42 @@ def convert_to_monthly(data):
             if float(months[d_start]['Low']) > float(row['Low']):
                 months[d_start]['Low'] = row['Low']
     rows = []
-    for k,v in months.items():
-        v_vol = sum(map(int, v['Volume']))/len(v['Volume'])
-        v['Volume'] = v_vol
-        rows.append(v)
+    for val in months.values():
+        v_vol = sum([int(x) for x in val['Volume']]) / len(val['Volume'])
+        val['Volume'] = v_vol
+        rows.append(val)
     return rows
 
 
 def convert_to_daily(data):
+    """
+    Stub for consistency
+        - see convert_to_weekly and convert_to_monthly
+    """
     return data
 
 
 def main(tickers, start_date, end_date, freq='daily'):
+    """
+    Fetches historical data for a list of tickers
+     from start_date to end_date
+    Data frequency can be specified in the freq optional
+     parameter (either daily, weekly or monthly)
+    """
     data = {}
     freqs = {
         'daily': convert_to_daily,
         'weekly': convert_to_weekly,
         'monthly': convert_to_monthly
     }
+    # TODO: Unknown frequency should probably raise a custom error
     if freq not in freqs:
-        print "Unknown frequency, defaulting to daily"
-        freq = daily
+        print("Unknown frequency, defaulting to daily")
+        freq = 'daily'
 
     for ticker in set(tickers):
         data[ticker] = freqs[freq](get_data(ticker, start_date, end_date))
     return data
 
 if __name__ == '__main__':
-    print main(['YHOO'], '2016-02-01', '2016-02-15')
+    print(main(['YHOO'], '2016-02-01', '2016-02-15'))

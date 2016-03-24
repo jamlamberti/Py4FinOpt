@@ -3,6 +3,7 @@
 # mysqldump -t --skip-extended-insert -u root -p pyfinopt > inserts.sql
 from common import sqlite_manager as db_manager
 
+
 def converter(mysql_dump='inserts.sql', sqlite_db='data/cache.db'):
     """Converts a MySQL export to a sqlite3 db
         - mysql_dump - Mysql dump file

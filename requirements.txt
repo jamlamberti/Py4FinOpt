@@ -4,6 +4,8 @@ xlsxwriter
 yahoo-finance
 scipy
 pandas
-coinor.pulp
+#coinor.pulp
+pulp
 networkx
 cvxopt
+pytest
