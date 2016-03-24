@@ -6,3 +6,4 @@ ticker_prices.xlsx
 *.lp
 __pycache__
 .cache
+.coverage
