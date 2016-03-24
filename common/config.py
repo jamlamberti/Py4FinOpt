@@ -1,6 +1,9 @@
 """Config File Handler"""
 import os
-import configparser
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 # pylint: disable=invalid-name
 _config = configparser.SafeConfigParser()
