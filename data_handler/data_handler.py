@@ -9,14 +9,14 @@ from __future__ import print_function
 import datetime
 
 from common import config, errors
-from data_handler import downloader
+from . import downloader
 
 CACHE_CONFIG = config.Section('cache')
 DB_CONFIG = None
 
 # TODO: Add a layer of abstraction for db connections
 try:
-    if CACHE_CONFIG.get('cache-impl') == 'mysql':
+    if CACHE_CONFIG.get('cache-impl') != 'mysql':
         raise Exception()
     # pylint: disable=ungrouped-imports, wrong-import-position
     from common import db_manager as db_mgr
@@ -75,12 +75,12 @@ class MemoizedTable(object):
         raise cache miss execption if not in cache
         """
         try:
-            sql = """SELECT ticker, timestamp, open,
-            high, low, close, volume, adjclose from """ \
+            sql = "SELECT ticker, timestamp, open, " \
+                "high, low, close, volume, adjclose from " \
                 + self.table \
-                + "where ticker = '%s' and " \
-                  "timestamp >= '%s' and timestamp <= '%s'"
-            res = self.db_access.execute_all(sql%args)
+                + " where ticker = ? and" \
+                " timestamp >= ? and timestamp <= ?"
+            res = self.db_access.execute_all(sql, *args)
             data = []
             for row in res:
                 temp = {}
@@ -101,6 +101,7 @@ class MemoizedTable(object):
             if len(data) == 0:
                 raise errors.CacheMiss()
             return data
+
         except Exception, err:
             print(err)
             raise errors.CacheMiss()
@@ -114,8 +115,7 @@ class MemoizedTable(object):
         for row in res:
             sql = "INSERT into " \
                 + self.table \
-                + " VALUES (null, '%s', '%s', " \
-                "%s, %s, %s, %s, %s, %s);"
+                + " VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?);"
             sqlarg = (
                 ticker,
                 row['Date'],
@@ -126,7 +126,7 @@ class MemoizedTable(object):
                 row['Volume'],
                 row['Adj_Close'])
 
-            self.db_access.execute_all(sql%sqlarg)
+            self.db_access.execute_all(sql, *sqlarg)
 
 @MemoizedTable(table='dailyCacheStocks')
 def get_data(ticker, start_date, end_date):

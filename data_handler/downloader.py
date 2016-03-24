@@ -11,6 +11,8 @@ def check_date_format(date):
         datetime.datetime.strptime(date, TIME_FMT)
     except ValueError:
         return False
+    except TypeError:
+        return False
     else:
         return True
 
