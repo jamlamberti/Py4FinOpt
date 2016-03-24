@@ -78,7 +78,7 @@ class DatabaseAccess(object):
                 self.conn = None
                 print(" [+] Closed SQLite connection")
 
-        except sqlite3.OperationalError, err:
+        except sqlite3.OperationalError as err:
             print(" [-] DB connection already closed... maybe timeout?")
             print(err)
 
@@ -95,7 +95,7 @@ class DatabaseAccess(object):
             self.cursor.execute(sql, args)
             self.conn.commit()
 
-        except sqlite3.OperationalError, err:
+        except sqlite3.OperationalError as err:
             print("database connection went away, reconnecting...")
             print(err)
             self.connect()

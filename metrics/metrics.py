@@ -2,6 +2,7 @@
 Useful for computing a bunch of metrics over
 time-series data
 """
+from __future__ import print_function
 import numpy as np
 import scipy.stats
 
@@ -104,7 +105,7 @@ def describe(data):
 
 def smoke_test():
     """A simple smoke test"""
-    print describe(1.*np.array([range(1, 10)]))
+    print(describe(1.*np.array([range(1, 10)])))
 
 if __name__ == '__main__':
     smoke_test()

@@ -39,7 +39,7 @@ class DatabaseAccess(object):
                 passwd=self.creds.db_pass,
                 db=self.creds.db_name)
 
-        except MySQLdb.Error, err:
+        except MySQLdb.Error as err:
             # Check if issue is due to an unknown db
             if err.args[0] == 1049:
                 print(" [-] Error connecting to MySQL, try creating the DB?")
