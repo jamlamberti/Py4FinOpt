@@ -2,7 +2,6 @@
 from __future__ import print_function
 import sqlite3
 import os
-from .credential_manager import CredentialManager
 
 
 def init_database(db_access):

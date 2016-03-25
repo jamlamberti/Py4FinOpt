@@ -19,6 +19,7 @@ getboolean = _config.getboolean
 
 
 def getlist(x, y):
+    """Splits a line on a comma"""
     return get(x, y).split(',')
 
 
