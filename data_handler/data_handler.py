@@ -8,7 +8,7 @@ It uses the config file to decided which cache implementation
 from __future__ import print_function
 import datetime
 
-from common import config, errors
+from common import config, errors, credential_manager
 from . import downloader
 
 CACHE_CONFIG = config.Section('cache')
@@ -42,7 +42,7 @@ class MemoizedTable(object):
 
     def __init__(self, table, use_cache=True):
         self.use_cache = use_cache
-        cred_mgr = db_mgr.CredentialManager(
+        cred_mgr = credential_manager.CredentialManager(
             host=DB_CONFIG.get('db_host'),
             user=DB_CONFIG.get('username'),
             passwd=DB_CONFIG.get('passwd'),
