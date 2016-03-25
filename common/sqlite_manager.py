@@ -2,6 +2,7 @@
 from __future__ import print_function
 import sqlite3
 import os
+from .credential_manager import CredentialManager
 
 
 def init_database(db_access):
@@ -22,27 +23,6 @@ def init_database(db_access):
     );""")
     db_access.close()
     print(" [+] Initialized DB")
-
-# TODO: Split me out into another file and convert to NamedTuple
-
-
-class CredentialManager(object):
-
-    """Creds for sqlite (e.g. filename)"""
-    # pylint: disable=too-many-arguments, too-few-public-methods
-
-    def __init__(
-            self,
-            host=None,
-            user=None,
-            passwd=None,
-            name='example.db',
-            port=3306):
-        self.db_host = host
-        self.db_user = user
-        self.db_pass = passwd
-        self.db_name = os.path.abspath(name)
-        self.port = port
 
 
 class DatabaseAccess(object):
@@ -151,20 +131,3 @@ class DatabaseAccess(object):
         self.lr_id = self.cursor.lastrowid
         self.conn.commit()
         return rows
-
-
-def test_connect():
-    """A simple smoke test"""
-    cred_mgr = CredentialManager(
-        host=None,
-        user=None,
-        passwd=None,
-        name='test.db',
-    )
-    db = DatabaseAccess(cred_mgr)
-    db.connect()
-    print(db.execute_all("SELECT * from sqlite_master where type='table'"))
-    db.close()
-
-if __name__ == '__main__':
-    test_connect()

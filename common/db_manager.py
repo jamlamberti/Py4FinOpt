@@ -3,27 +3,7 @@
 """MySQL Database Access wrapper"""
 from __future__ import print_function
 import MySQLdb
-
-# TODO: Switched to a named tuple
-
-
-class CredentialManager(object):
-
-    """Creds for MySQL"""
-    # pylint: disable=too-many-arguments, too-few-public-methods
-
-    def __init__(
-            self,
-            host,
-            user,
-            passwd,
-            name,
-            port=3306):
-        self.db_host = host
-        self.db_user = user
-        self.db_pass = passwd
-        self.db_name = name
-        self.port = port
+from . import credential_manager
 
 
 class DatabaseAccess(object):
@@ -150,7 +130,7 @@ def test_connect():
     """A smoke test for both CredentialManager and DatabaseAccess"""
     from common import config
     mysql_config = config.Section('mysql')
-    cred_mgr = CredentialManager(
+    cred_mgr = credential_manager.CredentialManager(
         host=mysql_config.get('db_host'),
         user=mysql_config.get('username'),
         passwd=mysql_config.get('passwd'),

@@ -16,7 +16,10 @@ get = _config.get
 getint = _config.getint
 getfloat = _config.getfloat
 getboolean = _config.getboolean
-getlist = lambda x, y: get(x, y).split(',')
+
+
+def getlist(x, y):
+    return get(x, y).split(',')
 
 
 class Section(object):
