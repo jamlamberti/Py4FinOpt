@@ -3,7 +3,7 @@ from __future__ import print_function
 import networkx as nx
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # nopep8
 
 
 class DependencyResolver(object):

@@ -47,12 +47,12 @@ def optimize_mad(returns, target_return, short_sales=False):
     A = np.concatenate((
         -1. * np.concatenate((
             np.eye(num_samples),
-            np.transpose(-1.0 * returns
-                         + (means * np.ones((1, num_samples))))), axis=1),
+            np.transpose(-1.0 * returns +
+                         (means * np.ones((1, num_samples))))), axis=1),
         -1. * np.concatenate((
             np.eye(num_samples),
-            np.transpose(returns
-                         - (means * np.ones((1, num_samples))))), axis=1),
+            np.transpose(returns -
+                         (means * np.ones((1, num_samples))))), axis=1),
         A_return_cstr), axis=0)
 
     b = np.zeros((2 * num_samples + 1, 1))
