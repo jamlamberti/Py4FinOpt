@@ -16,6 +16,10 @@ def test_downloader():
     res = downloader.main('WMT', '2006-02-12', '2016-32-12')
     assert len(res) == 0
 
+    # Start date comes after end date
+    res = downloader.main('WMT', '2016-02-12', '2016-02-12')
+    assert len(res) == 0
+
     # Valid case
     res = downloader.main('WMT', '2006-02-12', '2016-02-12')
     assert len(res) > 0
@@ -25,7 +29,12 @@ def test_fetch_data():
     """Test fetching and the cache"""
     daily = data_handler.main(['WMT'],
                               '2006-02-12', '2016-02-12', freq='daily')
-    assert len(daily['WMT']) > 0
+    assert len(daily) > 0 and len(daily['WMT']) > 0
+
+    # Invalid freq, should default to daily
+    daily_temp = data_handler.main(['WMT'],
+                                   '2006-02-12', '2016-02-12', freq='asdf')
+    assert len(daily_temp) > 0 and len(daily['WMT']) == len(daily_temp['WMT'])
 
     weekly = data_handler.main(['WMT'],
                                '2006-02-12', '2016-02-12', freq='weekly')
