@@ -98,7 +98,9 @@ def test_memoized():
     """Verify simple memoization code works"""
     from common import memoize
 
-    @memoize.MemoizedDict
+    global CALL_CNT # pylint: disable=global-statement
+
+    @memoize.MemoizedDict()
     def simple_test(arg):
         """Check if dict storage works"""
         global CALL_CNT # pylint: disable=global-statement
@@ -109,3 +111,16 @@ def test_memoized():
         for _ in range(2):
             assert 2 * i == simple_test(i)
     assert CALL_CNT == 10
+    CALL_CNT = 0
+
+    @memoize.MemoizedDict(use_cache=False)
+    def simple_test2(arg):
+        """Check if we can shut off caching"""
+        global CALL_CNT # pylint: disable=global-statement
+        CALL_CNT += 1
+        return 2*arg
+
+    for i in range(10):
+        for _ in range(2):
+            assert 2*i == simple_test2(i)
+    assert CALL_CNT == 20
