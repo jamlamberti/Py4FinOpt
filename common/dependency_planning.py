@@ -29,7 +29,7 @@ class DependencyResolver(object):
         self.add_task(task)
         self.dependencies[task].append(dep)
 
-    def visualize(self):
+    def visualize(self, out_file='out.png'):
         """Visualize the graph"""
         graph = nx.DiGraph()
         for task in self.dependencies.keys():
@@ -40,7 +40,7 @@ class DependencyResolver(object):
         nx.draw_networkx_edges(graph, pos, arrows=True, width=2)
         # nx.draw_networkx_edge_labels(graph, pos)
         nx.draw(graph, pos, node_size=3000)
-        plt.savefig('out.png')
+        plt.savefig(out_file)
 
     def _dep_resolve(self, node, resolved, unresolved):
         """Solve the problem"""
@@ -79,25 +79,3 @@ class DependencyResolver(object):
                     return False
             completed.append(cur)
         return True
-
-
-def test_case():
-    """A simple smoke test"""
-    depr = DependencyResolver()
-    depr.add_task('arithmetic mean')
-    depr.add_task('geometric mean')
-    depr.add_task('median')
-    depr.add_task('quartiles')
-    depr.add_task('standard deviation')
-    depr.add_dep('downside standard deviation', 'arithmetic mean')
-    depr.add_dep('MAD', 'arithmetic mean')
-    depr.add_dep('sharpe ratio', 'standard deviation')
-    depr.add_dep('sortino ratio', 'downside standard deviation')
-    depr.visualize()
-    depr.generate_solution('MAD')
-    print(depr.sol)
-    depr.validate_solution(depr.sol, [])
-
-
-if __name__ == "__main__":
-    test_case()
