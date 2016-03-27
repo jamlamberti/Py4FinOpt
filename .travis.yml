@@ -6,7 +6,7 @@ cache: apt
 before_install:
     - sudo apt-get -qq  update -y
     - sudo apt-get -qq install -y liblapack-dev gfortran
-    - pip install pytest pytest-cov codecov coveralls
+    - pip -q install pytest pytest-cov codecov coveralls
 
 install:
     - pip install -r requirements.txt

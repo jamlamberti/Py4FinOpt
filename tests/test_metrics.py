@@ -25,8 +25,8 @@ def test_metrics():
     ]
 
     for func in funcs:
-        if isinstance(res[func.__name__], list):
+        try:
             assert all([
                 res[func.__name__][i] == v for i, v in enumerate(func(data))])
-        else:
+        except TypeError:
             assert func(data) == res[func.__name__]
