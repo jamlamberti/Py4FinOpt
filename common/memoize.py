@@ -37,14 +37,3 @@ class MemoizedDict(object):
     def __write_cache(self, res, args):
         """write result to dict"""
         self.cache[args] = res
-
-
-@MemoizedDict
-def simple_test(arg):
-    """Smoke test of memoized dict"""
-    return 2 * arg
-
-if __name__ == '__main__':
-    for i in range(10):
-        for _ in range(2):
-            assert 2 * i == simple_test(i)

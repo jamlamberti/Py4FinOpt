@@ -2,6 +2,8 @@
 from __future__ import print_function
 import os
 
+CALL_CNT = 0
+
 
 def test_sqlite_connection():
     """A simple smoke test"""
@@ -40,7 +42,11 @@ def test_dependency_planning():
     depr.generate_solution('MAD')
     print(depr.sol)
     assert depr.validate_solution(depr.sol, [])
-    assert depr.validate_solution(['arithmetic mean', 'quartiles', 'MAD'])
+    assert not depr.validate_solution(['MAD'])
+    assert depr.validate_solution([
+        'arithmetic mean',
+        'arithmetic mean',
+        'MAD'])
 
 
 def test_config_section():
@@ -70,3 +76,20 @@ def test_config_section():
     list_test = test_config.getlist('li')
     assert len(list_test) == 3
     assert isinstance(list_test, list)
+
+
+def test_memoized():
+    """Verify simple memoization code works"""
+    from common import memoize
+
+    @memoize.MemoizedDict
+    def simple_test(arg):
+        """Check if dict storage works"""
+        global CALL_CNT # pylint: disable=global-statement
+        CALL_CNT += 1
+        return 2 * arg
+
+    for i in range(10):
+        for _ in range(2):
+            assert 2 * i == simple_test(i)
+    assert CALL_CNT == 10
