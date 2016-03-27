@@ -8,7 +8,8 @@ def test_metrics():
     res = metrics.describe(1. * np.array([range(1, 10)]))
     assert res['arithmetic_mean'] == 5.0
     assert abs(res['downside_variance']-3.33333) < 0.00001
-    assert res['quartiles'] == [3.0, 5.0, 7.0]
+    assert all([
+        res['quartiles'][i] == v for i, v in enumerate([3.0, 5.0, 7.0])])
     assert res['interquartile_range'] == 4.0
     assert res['median'] == 5.0
     assert abs(res['standard_deviation'] - 2.7386) < 0.0001
