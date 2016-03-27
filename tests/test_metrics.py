@@ -25,4 +25,8 @@ def test_metrics():
     ]
 
     for func in funcs:
-        assert func(data) == res[func.__name__]
+        if isinstance(res[func.__name__], list):
+            assert all([
+                res[func.__name__][i] == v for i, v in enumerate(func(data))])
+        else:
+            assert func(data) == res[func.__name__]
