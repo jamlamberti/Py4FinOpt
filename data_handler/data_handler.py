@@ -233,6 +233,3 @@ def main(tickers, start_date, end_date, freq='daily'):
     for ticker in set(tickers):
         data[ticker] = freqs[freq](get_data(ticker, start_date, end_date))
     return data
-
-if __name__ == '__main__':
-    print(main(['YHOO'], '2016-02-01', '2016-02-15'))
