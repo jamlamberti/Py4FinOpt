@@ -21,6 +21,7 @@ def test_sqlite_connection():
     assert 'test.db' in os.listdir('.')
     os.remove('test.db')
 
+
 def test_case():
     """A simple smoke test"""
     depr = dependency_planning.DependencyResolver()
