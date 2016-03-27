@@ -40,6 +40,7 @@ def test_dependency_planning():
     depr.generate_solution('MAD')
     print(depr.sol)
     assert depr.validate_solution(depr.sol, [])
+    assert depr.validate_solution(['arithmetic mean', 'quartiles', 'MAD'])
 
 
 def test_config_section():

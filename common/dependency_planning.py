@@ -60,8 +60,10 @@ class DependencyResolver(object):
         """Generates the solution for running goal"""
         self.sol = self._dep_resolve(goal, [], [])
 
-    def validate_solution(self, path, completed):
+    def validate_solution(self, path, completed=None):
         """Validates that we found a feasible and optimal solution"""
+        if completed is None:
+            completed = []
         print("Analyzing solution:")
         print(path)
         print(completed)
