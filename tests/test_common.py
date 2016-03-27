@@ -1,7 +1,9 @@
 """A set of test cases for common"""
 from __future__ import print_function
 import os
+import pytest
 
+# Used for tracking memoized code
 CALL_CNT = 0
 
 
@@ -39,14 +41,28 @@ def test_dependency_planning():
     depr.visualize('out.png')
     assert 'out.png' in os.listdir('.')
     os.remove('out.png')
+
     depr.generate_solution('MAD')
     print(depr.sol)
+
     assert depr.validate_solution(depr.sol, [])
     assert not depr.validate_solution(['MAD'])
     assert depr.validate_solution([
         'arithmetic mean',
         'arithmetic mean',
         'MAD'])
+
+    # Test circular
+    depr.add_dep('arithmetic mean', 'MAD')
+    with pytest.raises(Exception) as circular_excep:
+        depr.generate_solution('MAD')
+        assert 'Circular reference detected: ' in str(circular_excep)
+
+    assert not depr.validate_solution(['arithmetic mean', 'MAD'])
+
+    # Self-reference test
+    depr.add_dep('median', 'median')
+    assert not depr.validate_solution(['median'])
 
 
 def test_config_section():
