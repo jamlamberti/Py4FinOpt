@@ -110,11 +110,3 @@ def describe(data):
         result[func.__name__] = func(data, result)
 
     return result
-
-
-def smoke_test():
-    """A simple smoke test"""
-    print(describe(1. * np.array([range(1, 10)])))
-
-if __name__ == '__main__':
-    smoke_test()
