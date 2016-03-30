@@ -4,6 +4,6 @@ xlsxwriter
 yahoo-finance
 scipy
 pandas
-coinor.pulp
+pulp
 networkx
 cvxopt
