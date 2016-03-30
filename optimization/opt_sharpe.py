@@ -1,6 +1,6 @@
 import numpy as np
 from cvxopt import solvers, matrix
-
+import scipy.optimize
 solvers.options["show_progress"] = False
 solvers.options['maxiters'] = 500
 
@@ -30,23 +30,32 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
                     (r_f - means.T*x)*(-1/(2*float(x.T*Q*x)**(2/3)))+(Q.T + Q).T + \
                     (Q.T + Q).T*(1/(4*float(x.T*Q*x)**(4/3)))
                 return sharpe, matrix(dF), matrix(H)
+    def f2(x):
+        t = list(x)
+        t.append(1-sum(t))
+        x = np.asmatrix(t).T
+        sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
+        return sharpe
 
+    #G = np.zeros((1, N))
+    #h = [0.0]
 
-    G = np.zeros((1, N))
-    h = [0.0]
-
-    A = np.ones((1, N))
-    b = [1.0]
+    #A = np.ones((1, N))
+    #b = [1.0]
     
-    sol = solvers.cp(
-        f,
-        G=matrix(G),
-        h=matrix(h),
-        A=matrix(A),
-        b=matrix(b),
-    )
-    print r_f, sol['status']
-    return sol['x']
+    #sol = solvers.cp(
+    #    f,
+    #    G=matrix(G),
+    #    h=matrix(h),
+    #    A=matrix(A),
+    #    b=matrix(b),
+    #)
+    #print r_f, sol['status']
+    #return sol['x']
+
+    sol = list(scipy.optimize.fmin(f2, scipy.ones(N-1, dtype=float) * 1./N, disp=False, full_output=False))
+    sol.append(1-sum(sol))
+    return sol
 
 
 if __name__ == '__main__':
@@ -76,7 +85,7 @@ if __name__ == '__main__':
         r.append([1.0+i/100 for i in rets[k]])
     means = np.mean(r, axis=1)
     steps = np.linspace(0.0, 1.0, num=50)
-    xs = map(lambda x: np.transpose(opt_sharpe(r, x))[0], steps)
+    xs = map(lambda x: np.transpose(opt_sharpe(r, x)), steps)
     for i, row in enumerate(xs):
         print "Rf:", steps[i], map(lambda x: "%0.3f"%x, row)
 
