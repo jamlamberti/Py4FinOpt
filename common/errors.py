@@ -14,3 +14,11 @@ class CacheMiss(Exception):
 
     """Throw whenever there is a cache miss"""
     pass
+
+
+class InvalidParameterValue(Exception):
+    """
+    Throw whenever a parameter is passed
+    with an invalid value
+    """
+    pass
