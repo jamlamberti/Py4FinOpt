@@ -22,6 +22,6 @@ def jump_diffusion(
                 (riskless_short_rate - jump_correction - 0.5 * sigma**2) *
                 t_step +
                 sigma * np.sqrt(t_step) * np.random.standard_normal()) +
-                (np.exp(mu + delta * np.random.standard_normal()) - 1) *
-                np.random.poisson(poisson_intensity * t_step))))
+                          (np.exp(mu + delta*np.random.standard_normal()) - 1) *
+                          np.random.poisson(poisson_intensity * t_step))))
     return prices

@@ -35,8 +35,8 @@ def test_fetch_data():
 
     # Invalid freq, should raise error
     with pytest.raises(errors.InvalidParameterValue):
-        daily_temp = data_handler.main(['WMT'],
-                                       '2006-02-12', '2016-02-12', freq='asdf')
+        _ = data_handler.main(['WMT'],
+                              '2006-02-12', '2016-02-12', freq='asdf')
 
     weekly = data_handler.main(['WMT'],
                                '2006-02-12', '2016-02-12', freq='weekly')
