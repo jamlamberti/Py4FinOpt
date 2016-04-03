@@ -1,6 +1,7 @@
 """Tests for the data_handler component"""
 import pytest
 
+
 def test_downloader():
     """Check if we can download data correctly"""
     from data_handler import downloader
