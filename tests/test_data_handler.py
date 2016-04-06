@@ -1,4 +1,5 @@
 """Tests for the data_handler component"""
+import pytest
 
 
 def test_downloader():
@@ -27,15 +28,16 @@ def test_downloader():
 
 def test_fetch_data():
     """Test fetching and the cache"""
+    from common import errors
     from data_handler import data_handler
     daily = data_handler.main(['WMT'],
                               '2006-02-12', '2016-02-12', freq='daily')
     assert len(daily) > 0 and len(daily['WMT']) > 0
 
-    # Invalid freq, should default to daily
-    daily_temp = data_handler.main(['WMT'],
-                                   '2006-02-12', '2016-02-12', freq='asdf')
-    assert len(daily_temp) > 0 and len(daily['WMT']) == len(daily_temp['WMT'])
+    # Invalid freq, should raise error
+    with pytest.raises(errors.InvalidParameterValue):
+        _ = data_handler.main(['WMT'],
+                              '2006-02-12', '2016-02-12', freq='asdf')
 
     weekly = data_handler.main(['WMT'],
                                '2006-02-12', '2016-02-12', freq='weekly')

@@ -225,10 +225,11 @@ def main(tickers, start_date, end_date, freq='daily'):
         'weekly': convert_to_weekly,
         'monthly': convert_to_monthly
     }
-    # TODO: Unknown frequency should probably raise a custom error
+
     if freq not in freqs:
-        print("Unknown frequency, defaulting to daily")
-        freq = 'daily'
+        raise errors.InvalidParameterValue(
+            "freq must be one of the following: %s" %
+            ", ".join(freqs.keys()))
 
     for ticker in set(tickers):
         data[ticker] = freqs[freq](get_data(ticker, start_date, end_date))
