@@ -10,32 +10,35 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
     Q = np.cov(returns)
     means = np.mean(returns, axis=1)
     last_x = (1./N)*np.ones((N, 1))
-    def f(x_mat=None, z=None):
-        if x_mat is None:
-            x0 = (1./N)*np.ones((N, 1))
-            return 0, matrix(x0)
-        else:
-            x = np.asmatrix(x_mat)
-            last_x = x
-            sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
-            # Needs more...
-            dF = np.transpose(means*(1.0/np.sqrt(np.transpose(x)*Q*x))) + \
-                (r_f-np.transpose(means)*x)*(-1/(2*float(np.transpose(x)*Q*x)**(2.0/3)))*np.transpose(x)*(Q + np.transpose(Q))
-            if z is None:
-                # Return val, d(f)/dx
-                return sharpe, matrix(dF)
-            else:
-                # Return val, d(f)/dx, and hessian
-                H = means*(-1/(float(x.T*Q*x)**(2/3)))*x.T*(Q.T + Q) + \
-                    (r_f - means.T*x)*(-1/(2*float(x.T*Q*x)**(2/3)))+(Q.T + Q).T + \
-                    (Q.T + Q).T*(1/(4*float(x.T*Q*x)**(4/3)))
-                return sharpe, matrix(dF), matrix(H)
+    #def f(x_mat=None, z=None):
+    #    if x_mat is None:
+    #        x0 = (1./N)*np.ones((N, 1))
+    #        return 0, matrix(x0)
+    #    else:
+    #        x = np.asmatrix(x_mat)
+    #        last_x = x
+    #        sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
+    #        # Needs more...
+    #        dF = np.transpose(means*(1.0/np.sqrt(np.transpose(x)*Q*x))) + \
+    #            (r_f-np.transpose(means)*x)*(-1/(2*float(np.transpose(x)*Q*x)**(2.0/3)))*np.transpose(x)*(Q + np.transpose(Q))
+    #        if z is None:
+    #            # Return val, d(f)/dx
+    #            return sharpe, matrix(dF)
+    #        else:
+    #            # Return val, d(f)/dx, and hessian
+    #            H = means*(-1/(float(x.T*Q*x)**(2/3)))*x.T*(Q.T + Q) + \
+    #                (r_f - means.T*x)*(-1/(2*float(x.T*Q*x)**(2/3)))+(Q.T + Q).T + \
+    #                (Q.T + Q).T*(1/(4*float(x.T*Q*x)**(4/3)))
+    #            return sharpe, matrix(dF), matrix(H)
+
+
     def f2(x):
         t = list(x)
         t.append(1-sum(t))
         x = np.asmatrix(t).T
         sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
         return sharpe
+
 
     #G = np.zeros((1, N))
     #h = [0.0]
