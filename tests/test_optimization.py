@@ -3,7 +3,7 @@ from __future__ import print_function
 import csv
 from collections import defaultdict
 import numpy as np
-from optimization import mad, mvo, downside_var
+from optimization import mad, mvo, downside_var, sharpe_opt
 
 # Might want to consider breaking this function out
 
@@ -57,9 +57,27 @@ def smoke_test(optimizers):
                 assert not all(shorting_test)
 
 
+def smoke_test2(optimizers):
+    """A different smoke test for other models"""
+    rets = load_data()
+    gross_returns = []
+    for k in sorted(rets.keys()):
+        gross_returns.append([1.0 + i / 100 for i in rets[k]])
+    means = np.mean(gross_returns, axis=1)
+    steps = np.linspace(0.0, min(means), num=100)
+    for opt_model in optimizers:
+        allocations = [np.transpose(opt_model(gross_returns, x))
+                       for x in steps]
+        shorting_test = [all([x >= -np.finfo(np.float32).eps for x in row])
+                         for row in allocations]
+        assert not all(shorting_test)
+
+
 def test_models():
     """Run over all the models"""
     smoke_test([
         mvo.optimize_mv,
         mad.optimize_mad,
         downside_var.optimize_downside_variance])
+    # Sharpe doesn't support turning on and off short sales
+    smoke_test2([sharpe_opt.optimize_sharpe])
