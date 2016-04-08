@@ -6,30 +6,9 @@ solvers.options['maxiters'] = 500
 
 def opt_sharpe(returns, r_f=1, short_sales=False):
     returns = np.asmatrix(returns)
-    N, T = returns.shape
-    Q = np.cov(returns)
+    num_stocks, _ = returns.shape
+    covar = np.cov(returns)
     means = np.mean(returns, axis=1)
-    last_x = (1./N)*np.ones((N, 1))
-    #def f(x_mat=None, z=None):
-    #    if x_mat is None:
-    #        x0 = (1./N)*np.ones((N, 1))
-    #        return 0, matrix(x0)
-    #    else:
-    #        x = np.asmatrix(x_mat)
-    #        last_x = x
-    #        sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
-    #        # Needs more...
-    #        dF = np.transpose(means*(1.0/np.sqrt(np.transpose(x)*Q*x))) + \
-    #            (r_f-np.transpose(means)*x)*(-1/(2*float(np.transpose(x)*Q*x)**(2.0/3)))*np.transpose(x)*(Q + np.transpose(Q))
-    #        if z is None:
-    #            # Return val, d(f)/dx
-    #            return sharpe, matrix(dF)
-    #        else:
-    #            # Return val, d(f)/dx, and hessian
-    #            H = means*(-1/(float(x.T*Q*x)**(2/3)))*x.T*(Q.T + Q) + \
-    #                (r_f - means.T*x)*(-1/(2*float(x.T*Q*x)**(2/3)))+(Q.T + Q).T + \
-    #                (Q.T + Q).T*(1/(4*float(x.T*Q*x)**(4/3)))
-    #            return sharpe, matrix(dF), matrix(H)
 
     def transform_input(x):
         t = list(x)
@@ -38,32 +17,14 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
 
     def neg_sharpe(x):
         x = np.asmatrix(transform_input(x)).T
-        sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
+        sharpe = (r_f-means.T*x)/np.sqrt(x.T*covar*x)
         return sharpe
-
-
-    #G = np.zeros((1, N))
-    #h = [0.0]
-
-    #A = np.ones((1, N))
-    #b = [1.0]
-    
-    #sol = solvers.cp(
-    #    f,
-    #    G=matrix(G),
-    #    h=matrix(h),
-    #    A=matrix(A),
-    #    b=matrix(b),
-    #)
-    #print r_f, sol['status']
-    #return sol['x']
 
     sol = scipy.optimize.fmin(
         neg_sharpe,
-        scipy.ones(N-1, dtype=float) * 1./N,
+        scipy.ones(num_stocks-1, dtype=float) * 1./num_stocks,
         disp=False,
-        full_output=False,
-        maxfun=1000)
+        full_output=False)
     return transform_input(sol)
 
 
