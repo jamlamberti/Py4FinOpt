@@ -31,11 +31,13 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
     #                (Q.T + Q).T*(1/(4*float(x.T*Q*x)**(4/3)))
     #            return sharpe, matrix(dF), matrix(H)
 
-
-    def f2(x):
+    def transform_input(x):
         t = list(x)
         t.append(1-sum(t))
-        x = np.asmatrix(t).T
+        return t
+
+    def neg_sharpe(x):
+        x = np.asmatrix(transform_input(x)).T
         sharpe = (r_f-np.transpose(means)*x)/np.sqrt(np.transpose(x)*Q*x)
         return sharpe
 
@@ -56,9 +58,12 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
     #print r_f, sol['status']
     #return sol['x']
 
-    sol = list(scipy.optimize.fmin(f2, scipy.ones(N-1, dtype=float) * 1./N, disp=False, full_output=False))
-    sol.append(1-sum(sol))
-    return sol
+    sol = scipy.optimize.fmin(
+        neg_sharpe,
+        scipy.ones(N-1, dtype=float) * 1./N,
+        disp=1,
+        full_output=False)
+    return transform_input(sol)
 
 
 if __name__ == '__main__':
@@ -87,7 +92,7 @@ if __name__ == '__main__':
     for k in sorted(rets.keys()):
         r.append([1.0+i/100 for i in rets[k]])
     means = np.mean(r, axis=1)
-    steps = np.linspace(0.0, 1.0, num=50)
+    steps = np.linspace(0.0, max(means), num=50)
     xs = map(lambda x: np.transpose(opt_sharpe(r, x)), steps)
     for i, row in enumerate(xs):
         print "Rf:", steps[i], map(lambda x: "%0.3f"%x, row)
