@@ -27,7 +27,7 @@ def optimize_sharpe(returns, r_f=1):
         """Compute -1*sharpe_ratio"""
         dec_vars = np.asmatrix(transform_input(dec_vars)).T
         sharpe = (r_f - means.T * dec_vars) \
-                / np.sqrt(dec_vars.T * covar * dec_vars)
+            / np.sqrt(dec_vars.T * covar * dec_vars)
         return sharpe
 
     sol = scipy.optimize.fmin(
