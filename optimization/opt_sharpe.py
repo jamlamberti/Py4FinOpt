@@ -61,8 +61,9 @@ def opt_sharpe(returns, r_f=1, short_sales=False):
     sol = scipy.optimize.fmin(
         neg_sharpe,
         scipy.ones(N-1, dtype=float) * 1./N,
-        disp=1,
-        full_output=False)
+        disp=False,
+        full_output=False,
+        maxfun=1000)
     return transform_input(sol)
 
 
@@ -92,7 +93,8 @@ if __name__ == '__main__':
     for k in sorted(rets.keys()):
         r.append([1.0+i/100 for i in rets[k]])
     means = np.mean(r, axis=1)
-    steps = np.linspace(0.0, max(means), num=50)
+
+    steps = np.linspace(0.0, min(means), num=100)
     xs = map(lambda x: np.transpose(opt_sharpe(r, x)), steps)
     for i, row in enumerate(xs):
         print "Rf:", steps[i], map(lambda x: "%0.3f"%x, row)
