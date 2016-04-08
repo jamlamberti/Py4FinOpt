@@ -66,8 +66,10 @@ def smoke_test2(optimizers):
     means = np.mean(gross_returns, axis=1)
     steps = np.linspace(0.0, min(means), num=100)
     for opt_model in optimizers:
-        allocations = [np.transpose(opt_model(gross_returns, x)) for x in steps]
-        shorting_test = [all([x >= -np.finfo(np.float32).eps for x in row]) for row in allocations]
+        allocations = [np.transpose(opt_model(gross_returns, x))
+                       for x in steps]
+        shorting_test = [all([x >= -np.finfo(np.float32).eps for x in row])
+                         for row in allocations]
         assert not all(shorting_test)
 
 
