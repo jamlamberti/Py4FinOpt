@@ -14,18 +14,7 @@ from . import downloader
 CACHE_CONFIG = config.Section('cache')
 DB_CONFIG = None
 
-# TODO: Add a layer of abstraction for db connections
-try:
-    if CACHE_CONFIG.get('cache-impl') != 'mysql':
-        raise Exception()
-    # pylint: disable=ungrouped-imports, wrong-import-position
-    from common import db_manager as db_mgr
-    DB_CONFIG = config.Section('mysql')
-
-except Exception:
-    # pylint: disable=ungrouped-imports, wrong-import-position
-    from common import sqlite_manager as db_mgr
-    DB_CONFIG = config.Section('sqlite')
+from common.db_manager import *
 
 TIME_FMT = '%Y-%m-%d'
 
